@@ -16,3 +16,4 @@ c:\Users\AhmedPc\Documents\Dev\C#\apitest\WhatsAppLinkerApp\WhatsAppLinkerApp\bi
 c:\Users\AhmedPc\Documents\Dev\C#\apitest\WhatsAppLinkerApp\WhatsAppLinkerApp\bin\Debug\net8.0-windows\QRCoder.dll
 c:\Users\AhmedPc\Documents\Dev\C#\apitest\WhatsAppLinkerApp\WhatsAppLinkerApp\obj\Debug\net8.0-windows\WhatsAppLinkerApp.csproj.AssemblyReference.cache
 c:\Users\AhmedPc\Documents\Dev\C#\apitest\WhatsAppLinkerApp\WhatsAppLinkerApp\obj\Debug\net8.0-windows\WhatsApp.3462FE7C.Up2Date
+C:\Users\AhmedPc\Documents\Dev\C#\apitest\WhatsAppLinkerApp\WhatsAppLinkerApp\obj\Debug\net8.0-windows\WhatsAppLinkerApp.sourcelink.json

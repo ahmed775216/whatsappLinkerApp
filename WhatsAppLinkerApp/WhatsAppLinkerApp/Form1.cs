@@ -13,8 +13,11 @@ namespace WhatsAppLinkerApp
 
         private void linkWhatsappButton_Click(object sender, EventArgs e)
         {
-            // Create an instance of the QR display form
-            QrDisplayForm qrForm = new QrDisplayForm();
+            string apiUsername = textBoxApiUsername.Text;
+            string apiPassword = textBoxApiPassword.Text;
+
+            // Create an instance of the QR display form, passing the API credentials
+            QrDisplayForm qrForm = new QrDisplayForm(apiUsername, apiPassword);
             
             // Subscribe to the ClientLinked event to get data back
             qrForm.ClientLinked += QrForm_ClientLinked; 

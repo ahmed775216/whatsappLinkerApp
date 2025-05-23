@@ -1,3 +1,4 @@
+// QrDisplayForm.cs
 using System;
 using System.Drawing;
 using System.IO;
@@ -14,14 +15,20 @@ namespace WhatsAppLinkerApp
     {
         private ClientWebSocket _webSocketClient;
         private CancellationTokenSource _cancellationTokenSource;
-        private const string? NodeJsWebSocketUrl = "ws://localhost:8088";
-        private bool _isConnecting = false; // Flag to prevent multiple connection attempts
+        private const string NodeJsWebSocketUrl = "ws://localhost:8088";
+        private bool _isConnecting = false;
+
+        private string _apiUsername; // Store API username
+        private string _apiPassword; // Store API password
 
         public event Action<string, string, string> ClientLinked;
 
-        public QrDisplayForm()
+        // Modified constructor to accept API credentials
+        public QrDisplayForm(string apiUsername, string apiPassword)
         {
             InitializeComponent();
+            _apiUsername = apiUsername;
+            _apiPassword = apiPassword;
             this.Load += QrDisplayForm_Load;
             this.FormClosing += QrDisplayForm_FormClosing;
         }
@@ -35,7 +42,7 @@ namespace WhatsAppLinkerApp
 
         private async void QrDisplayForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            _cancellationTokenSource?.Cancel(); // Signal cancellation
+            _cancellationTokenSource?.Cancel();
             if (_webSocketClient != null && _webSocketClient.State == WebSocketState.Open)
             {
                 try { await _webSocketClient.CloseAsync(WebSocketCloseStatus.NormalClosure, "Form closed", CancellationToken.None); }
@@ -48,7 +55,7 @@ namespace WhatsAppLinkerApp
         {
             if (_isConnecting || (_webSocketClient != null && _webSocketClient.State == WebSocketState.Open)) {
                 Console.WriteLine("ConnectToWebSocketAsync: Already connecting or connected. Aborting.");
-                return; // Prevent multiple connections
+                return;
             }
 
             _isConnecting = true;
@@ -63,10 +70,9 @@ namespace WhatsAppLinkerApp
                 UpdateStatus("Connected. Requesting QR code...");
                 Console.WriteLine("WebSocket Connected! Sending requestQr.");
                 
-                // --- CRITICAL: Request QR from Manager ---
-                await RequestQrFromManager();
+                // Send API credentials along with the QR request
+                await RequestQrFromManager(_apiUsername, _apiPassword);
 
-                // Start receiving messages in a separate task
                 _ = ReceiveMessagesAsync(_webSocketClient, _cancellationTokenSource.Token);
             }
             catch (WebSocketException ex)
@@ -85,15 +91,20 @@ namespace WhatsAppLinkerApp
             }
             finally
             {
-                _isConnecting = false; // Reset flag
+                _isConnecting = false;
             }
         }
 
-        private async Task RequestQrFromManager()
+        // Modified to accept API credentials
+        private async Task RequestQrFromManager(string apiUsername, string apiPassword)
         {
             if (_webSocketClient != null && _webSocketClient.State == WebSocketState.Open)
             {
-                var request = new { type = "requestQr" };
+                var request = new { 
+                    type = "requestQr",
+                    apiUsername = apiUsername, // Send API username
+                    apiPassword = apiPassword  // Send API password
+                };
                 var buffer = Encoding.UTF8.GetBytes(JObject.FromObject(request).ToString());
                 if (_cancellationTokenSource != null)
                 {
@@ -111,12 +122,16 @@ namespace WhatsAppLinkerApp
             }
         }
 
-        // This function will be added to the button event if you put a button in QrDisplayForm
         private async Task ManualRelinkFromManager()
         {
             if (_webSocketClient != null && _webSocketClient.State == WebSocketState.Open)
             {
-                var request = new { type = "manualRelink" };
+                // For manual relink, also send current API credentials
+                var request = new { 
+                    type = "manualRelink",
+                    apiUsername = _apiUsername,
+                    apiPassword = _apiPassword
+                };
                 var buffer = Encoding.UTF8.GetBytes(JObject.FromObject(request).ToString());
                 if (_cancellationTokenSource != null)
                 {
@@ -133,8 +148,6 @@ namespace WhatsAppLinkerApp
                 UpdateStatus("Not connected to bot manager, cannot request re-link.");
             }
         }
-
-
 
         private async Task ReceiveMessagesAsync(ClientWebSocket wsClient, CancellationToken token)
         {
@@ -159,14 +172,13 @@ namespace WhatsAppLinkerApp
                     }
                 }
             }
-            catch (OperationCanceledException) { /* Task cancelled, graceful exit */ }
+            catch (OperationCanceledException) { }
             catch (WebSocketException ex) {
-                // This indicates connection was lost, update status
                 UpdateStatus($"WebSocket error: {ex.Message}. Connection lost.");
                 Console.WriteLine($"WebSocket Receive Error: {ex.Message}");
             }
             catch (Exception ex) {
-                UpdateStatus($"Error processing message: {ex.Message}");
+                UpdateStatus($"An unexpected error occurred during connection: {ex.Message}");
                 Console.WriteLine($"Message Processing Error: {ex.Message}");
             }
             finally
@@ -176,12 +188,11 @@ namespace WhatsAppLinkerApp
                 {
                    try { await wsClient.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Client receiver loop ended", CancellationToken.None); } catch {}
                 }
-                // Only try to reconnect if not explicitly closing the form
                 if (!_cancellationTokenSource.IsCancellationRequested && (wsClient.State == WebSocketState.Closed || wsClient.State == WebSocketState.Aborted))
                 {
                     Console.WriteLine("Attempting to reconnect WebSocket...");
-                    _webSocketClient = new ClientWebSocket(); // Create new client instance
-                    await ConnectToWebSocketAsync(); // Try to reconnect
+                    _webSocketClient = new ClientWebSocket();
+                    await ConnectToWebSocketAsync();
                 } else if (_cancellationTokenSource.IsCancellationRequested) {
                     UpdateStatus("Window closing, not reconnecting.");
                 } else {
@@ -190,21 +201,20 @@ namespace WhatsAppLinkerApp
             }
         }
 
-        private void ProcessWebSocketMessage(string? messageJson)
+        private void ProcessWebSocketMessage(string messageJson)
         {
            this.Invoke((MethodInvoker)delegate
             {
                 try
                 {
                     JObject message = JObject.Parse(messageJson);
-                    string? type = message["type"]?.ToString();
-                    string? clientId = message["clientId"]?.ToString();
-                    string? phoneNumber = message["phoneNumber"]?.ToString();
-                    string? clientName = message["name"]?.ToString();
+                    string type = message["type"]?.ToString();
+                    string clientId = message["clientId"]?.ToString();
+                    string phoneNumber = message["phoneNumber"]?.ToString();
+                    string clientName = message["name"]?.ToString();
 
-                    if (type == "qr") {   if (type == "qr")
-                    {
-                        string? qrData = message["qr"]?.ToString();
+                    if (type == "qr") {
+                        string qrData = message["qr"]?.ToString();
                         if (!string.IsNullOrEmpty(qrData))
                         {
                             GenerateAndDisplayQr(qrData);
@@ -216,12 +226,11 @@ namespace WhatsAppLinkerApp
                             ClearQrDisplay();
                         }
                     }
-  }
                     else if (type == "status")
                     {
-                        string? status = message["status"]?.ToString();
-                        string? qrFromStatus = message["qr"]?.ToString();
-                        string? errorMsg = message["message"]?.ToString(); // Node.js sends 'message' key
+                        string status = message["status"]?.ToString();
+                        string qrFromStatus = message["qr"]?.ToString();
+                        string errorMsg = message["message"]?.ToString();
 
                         switch (status)
                         {
@@ -230,6 +239,7 @@ namespace WhatsAppLinkerApp
                                 ClearQrDisplay();
                                 if (ClientLinked != null && clientId != null && phoneNumber != null) {
                                     ClientLinked.Invoke(clientId, phoneNumber, clientName);
+                                    // NO LONGER SEND API CREDENTIALS HERE, THEY ARE SENT UPFRONT
                                 }
                                 break;
                             case "qr":
@@ -257,21 +267,19 @@ namespace WhatsAppLinkerApp
             });
         }
     
-
-        private void GenerateAndDisplayQr(string? qrText)
+        private void GenerateAndDisplayQr(string qrText)
         {
             try
             {
                 QRCodeGenerator qrGenerator = new QRCodeGenerator();
                 QRCodeData qrCodeData = qrGenerator.CreateQrCode(qrText, QRCodeGenerator.ECCLevel.Q);
 
-                // Use PngByteQRCode for direct byte array output, then convert to Bitmap
                 PngByteQRCode qrCode = new PngByteQRCode(qrCodeData);
-                byte[] qrCodeAsPngBytes = qrCode.GetGraphic(20); // 20 pixels per module (adjust size as needed)
+                byte[] qrCodeAsPngBytes = qrCode.GetGraphic(20);
 
                 using (var ms = new MemoryStream(qrCodeAsPngBytes))
                 {
-                    qrPictureBox.Image = new Bitmap(ms); // Assign to PictureBox
+                    qrPictureBox.Image = new Bitmap(ms);
                 }
             }
             catch (Exception ex)
@@ -286,16 +294,14 @@ namespace WhatsAppLinkerApp
         {
             if (qrPictureBox.Image != null)
             {
-                qrPictureBox.Image.Dispose(); // Release resources
+                qrPictureBox.Image.Dispose();
                 qrPictureBox.Image = null;
             }
         }
 
-        private void UpdateStatus(string? message)
+        private void UpdateStatus(string message)
         {
             statusLabel.Text = message;
         }
-
-
     }
 }
