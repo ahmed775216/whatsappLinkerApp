@@ -13,197 +13,104 @@ namespace WhatsAppLinkerApp
 {
     public partial class QrDisplayForm : Form
     {
-        private ClientWebSocket _webSocketClient;
-        private CancellationTokenSource _cancellationTokenSource;
-        private const string NodeJsWebSocketUrl = "ws://localhost:8088";
-        private bool _isConnecting = false;
+        private ClientWebSocket _sharedWebSocketClient; 
+        private CancellationTokenSource _sharedCancellationTokenSource; 
 
-        private string _apiUsername; // Store API username
-        private string _apiPassword; // Store API password
+        private string _apiUsername;
+        private string _apiPassword;
+        private string _ownerNumber; // NEW: Store owner number
 
         public event Action<string, string, string> ClientLinked;
 
-        // Modified constructor to accept API credentials
-        public QrDisplayForm(string apiUsername, string apiPassword)
+        // Modified constructor to accept ownerNumber
+        public QrDisplayForm(ClientWebSocket sharedWsClient, CancellationTokenSource sharedCts, string apiUsername, string apiPassword, string ownerNumber)
         {
             InitializeComponent();
+            _sharedWebSocketClient = sharedWsClient;
+            _sharedCancellationTokenSource = sharedCts;
             _apiUsername = apiUsername;
             _apiPassword = apiPassword;
+            _ownerNumber = ownerNumber; // NEW: Assign owner number
             this.Load += QrDisplayForm_Load;
             this.FormClosing += QrDisplayForm_FormClosing;
         }
 
         private async void QrDisplayForm_Load(object sender, EventArgs e)
         {
-            _cancellationTokenSource = new CancellationTokenSource();
-            _webSocketClient = new ClientWebSocket();
-            await ConnectToWebSocketAsync();
-        }
-
-        private async void QrDisplayForm_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            _cancellationTokenSource?.Cancel();
-            if (_webSocketClient != null && _webSocketClient.State == WebSocketState.Open)
+            if (_sharedWebSocketClient != null && _sharedWebSocketClient.State == WebSocketState.Open)
             {
-                try { await _webSocketClient.CloseAsync(WebSocketCloseStatus.NormalClosure, "Form closed", CancellationToken.None); }
-                catch (Exception ex) { Console.WriteLine($"Error closing WS: {ex.Message}"); }
-            }
-            _webSocketClient?.Dispose();
-        }
-
-        private async Task ConnectToWebSocketAsync()
-        {
-            if (_isConnecting || (_webSocketClient != null && _webSocketClient.State == WebSocketState.Open)) {
-                Console.WriteLine("ConnectToWebSocketAsync: Already connecting or connected. Aborting.");
-                return;
-            }
-
-            _isConnecting = true;
-            try
-            {
-                UpdateStatus("Connecting to bot manager for QR code...");
+                UpdateStatus("Connected to manager. Requesting QR code...");
                 ClearQrDisplay();
-
-                Console.WriteLine($"Attempting WS connection to {NodeJsWebSocketUrl}");
-                await _webSocketClient.ConnectAsync(new Uri(NodeJsWebSocketUrl), _cancellationTokenSource.Token);
-                
-                UpdateStatus("Connected. Requesting QR code...");
-                Console.WriteLine("WebSocket Connected! Sending requestQr.");
-                
-                // Send API credentials along with the QR request
-                await RequestQrFromManager(_apiUsername, _apiPassword);
-
-                _ = ReceiveMessagesAsync(_webSocketClient, _cancellationTokenSource.Token);
+                await RequestQrFromManager(_apiUsername, _apiPassword, _ownerNumber); // NEW: Pass ownerNumber
             }
-            catch (WebSocketException ex)
+            else
             {
-                UpdateStatus($"Error connecting: {ex.Message}. Ensure Node.js bot manager is running on {NodeJsWebSocketUrl}.");
-                Console.WriteLine($"WebSocket Connection Error: {ex.Message}");
-            }
-            catch (OperationCanceledException)
-            {
-                UpdateStatus("Connection attempt cancelled.");
-            }
-            catch (Exception ex)
-            {
-                UpdateStatus($"An unexpected error occurred during connection: {ex.Message}");
-                Console.WriteLine($"General Connection Error: {ex.Message}");
-            }
-            finally
-            {
-                _isConnecting = false;
+                UpdateStatus("Not connected to manager. Please ensure the main application is connected.");
+                Console.WriteLine("QrDisplayForm_Load: Shared WebSocket client is not open.");
             }
         }
 
-        // Modified to accept API credentials
-        private async Task RequestQrFromManager(string apiUsername, string apiPassword)
+        private void QrDisplayForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (_webSocketClient != null && _webSocketClient.State == WebSocketState.Open)
+            // No need to close/dispose the shared WebSocket here; Form1 owns it.
+        }
+
+        // Modified to accept ownerNumber
+        private async Task RequestQrFromManager(string apiUsername, string apiPassword, string ownerNumber) // NEW: ownerNumber param
+        {
+            if (_sharedWebSocketClient != null && _sharedWebSocketClient.State == WebSocketState.Open)
             {
                 var request = new { 
                     type = "requestQr",
-                    apiUsername = apiUsername, // Send API username
-                    apiPassword = apiPassword  // Send API password
+                    apiUsername = apiUsername, 
+                    apiPassword = apiPassword,
+                    ownerNumber = ownerNumber // NEW: Include ownerNumber in the request
                 };
                 var buffer = Encoding.UTF8.GetBytes(JObject.FromObject(request).ToString());
-                if (_cancellationTokenSource != null)
+                if (_sharedCancellationTokenSource != null && !_sharedCancellationTokenSource.IsCancellationRequested)
                 {
-                    await _webSocketClient.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, _cancellationTokenSource.Token);
+                    await _sharedWebSocketClient.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, _sharedCancellationTokenSource.Token);
                     UpdateStatus("Requested new QR code from bot manager...");
                 }
                 else
                 {
-                    UpdateStatus("Cancellation token is not initialized, cannot send request.");
+                    Console.WriteLine("Shared CancellationTokenSource is cancelled or null, cannot send requestQr.");
                 }
             }
             else
             {
-                UpdateStatus("Not connected to bot manager, cannot request QR.");
+                UpdateStatus("Shared WebSocket not connected, cannot request QR.");
+                Console.WriteLine("RequestQrFromManager: Shared WebSocket not open or null.");
             }
         }
 
+        // Modified ManualRelinkFromManager to include ownerNumber
         private async Task ManualRelinkFromManager()
         {
-            if (_webSocketClient != null && _webSocketClient.State == WebSocketState.Open)
+            if (_sharedWebSocketClient != null && _sharedWebSocketClient.State == WebSocketState.Open)
             {
-                // For manual relink, also send current API credentials
                 var request = new { 
                     type = "manualRelink",
                     apiUsername = _apiUsername,
-                    apiPassword = _apiPassword
+                    apiPassword = _apiPassword,
+                    ownerNumber = _ownerNumber // NEW: Include ownerNumber
                 };
                 var buffer = Encoding.UTF8.GetBytes(JObject.FromObject(request).ToString());
-                if (_cancellationTokenSource != null)
-                {
-                    await _webSocketClient.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, _cancellationTokenSource.Token);
-                    UpdateStatus("Requested manual re-link from bot manager...");
-                }
+                if (_sharedCancellationTokenSource != null && !_sharedCancellationTokenSource.IsCancellationRequested)
+                    await _sharedWebSocketClient.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, _sharedCancellationTokenSource.Token);
                 else
-                {
-                    UpdateStatus("Cancellation token is not initialized, cannot send manual re-link request.");
-                }
+                    Console.WriteLine("Shared CancellationTokenSource is cancelled or null, cannot send manual re-link request.");
             }
             else
             {
-                UpdateStatus("Not connected to bot manager, cannot request re-link.");
+                UpdateStatus("Shared WebSocket not connected, cannot request re-link.");
+                Console.WriteLine("ManualRelinkFromManager: Shared WebSocket not open or null.");
             }
         }
 
-        private async Task ReceiveMessagesAsync(ClientWebSocket wsClient, CancellationToken token)
+        public void ProcessManagerMessageForQRDisplay(string messageJson)
         {
-            var buffer = new byte[4096 * 2];
-            try
-            {
-                while (wsClient.State == WebSocketState.Open && !token.IsCancellationRequested)
-                {
-                    var result = await wsClient.ReceiveAsync(new ArraySegment<byte>(buffer), token);
-
-                    if (result.MessageType == WebSocketMessageType.Close)
-                    {
-                        await wsClient.CloseAsync(WebSocketCloseStatus.NormalClosure, "", token);
-                        UpdateStatus("Disconnected by server.");
-                        break;
-                    }
-                    else if (result.MessageType == WebSocketMessageType.Text)
-                    {
-                        var messageJson = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                        Console.WriteLine("Received from Node: " + messageJson);
-                        ProcessWebSocketMessage(messageJson);
-                    }
-                }
-            }
-            catch (OperationCanceledException) { }
-            catch (WebSocketException ex) {
-                UpdateStatus($"WebSocket error: {ex.Message}. Connection lost.");
-                Console.WriteLine($"WebSocket Receive Error: {ex.Message}");
-            }
-            catch (Exception ex) {
-                UpdateStatus($"An unexpected error occurred during connection: {ex.Message}");
-                Console.WriteLine($"Message Processing Error: {ex.Message}");
-            }
-            finally
-            {
-                Console.WriteLine("ReceiveMessagesAsync loop ended. WebSocket state: " + wsClient.State);
-                if (wsClient.State != WebSocketState.Closed && wsClient.State != WebSocketState.Aborted)
-                {
-                   try { await wsClient.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Client receiver loop ended", CancellationToken.None); } catch {}
-                }
-                if (!_cancellationTokenSource.IsCancellationRequested && (wsClient.State == WebSocketState.Closed || wsClient.State == WebSocketState.Aborted))
-                {
-                    Console.WriteLine("Attempting to reconnect WebSocket...");
-                    _webSocketClient = new ClientWebSocket();
-                    await ConnectToWebSocketAsync();
-                } else if (_cancellationTokenSource.IsCancellationRequested) {
-                    UpdateStatus("Window closing, not reconnecting.");
-                } else {
-                    UpdateStatus("Disconnected. Please click 'Link WhatsApp' to retry.");
-                }
-            }
-        }
-
-        private void ProcessWebSocketMessage(string messageJson)
-        {
-           this.Invoke((MethodInvoker)delegate
+            this.Invoke((MethodInvoker)delegate
             {
                 try
                 {
@@ -239,7 +146,6 @@ namespace WhatsAppLinkerApp
                                 ClearQrDisplay();
                                 if (ClientLinked != null && clientId != null && phoneNumber != null) {
                                     ClientLinked.Invoke(clientId, phoneNumber, clientName);
-                                    // NO LONGER SEND API CREDENTIALS HERE, THEY ARE SENT UPFRONT
                                 }
                                 break;
                             case "qr":
@@ -261,7 +167,7 @@ namespace WhatsAppLinkerApp
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Error parsing WebSocket message on UI thread: " + ex.Message);
+                    Console.WriteLine("Error parsing WebSocket message on UI thread (QrDisplayForm): " + ex.Message);
                     UpdateStatus("Error processing update from bot.");
                 }
             });
