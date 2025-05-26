@@ -499,7 +499,7 @@ namespace WhatsAppLinkerApp
             await RequestInstanceList(); // Refresh list regardless of QR process outcome
         }
 
-        private async void QrForm_ClientLinked(string clientId, string phoneNumber, string clientName)
+        private void QrForm_ClientLinked(string clientId, string phoneNumber, string clientName)
         {
             // This event handler runs when QrDisplayForm successfully links.
             // The QrDisplayForm itself closes, so no need to manage _currentQrDisplayForm here.

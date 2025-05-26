@@ -1,1 +1,4 @@
-/dotnetcode.txt
+/bin/Debug/net8.0-windows/
+*.exe
+*.txt
+*.dll

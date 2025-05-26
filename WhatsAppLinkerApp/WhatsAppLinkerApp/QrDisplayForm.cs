@@ -8,7 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json.Linq;
-using QRCoder; // Ensure this NuGet package is installed
+using QRCoder;
+using System.Drawing;  // Ensure this NuGet package is installed
 
 namespace WhatsAppLinkerApp
 {
@@ -210,7 +211,7 @@ namespace WhatsAppLinkerApp
             });
         }
 
-        private void GenerateAndDisplayQr(string qrText)
+  private void GenerateAndDisplayQr(string qrText)
         {
             try
             {
@@ -223,9 +224,14 @@ namespace WhatsAppLinkerApp
                 QRCodeData qrCodeData = qrGenerator.CreateQrCode(qrText, QRCodeGenerator.ECCLevel.Q);
 
                 PngByteQRCode qrCode = new PngByteQRCode(qrCodeData);
-                // 20 is pixels per module; adjust for resolution needed. 10 is usually fine for screen
-                // Use the overload that takes hex color strings if your QRCoder version requires it:
-                byte[] qrCodeAsPngBytes = qrCode.GetGraphic(10, new byte[] { 0, 0, 0 }, new byte[] { 255, 255, 255 });
+
+                // FIX HERE: Use RGBA byte arrays for colors as expected by QRCoder 1.4.3's PngByteQRCode.GetGraphic
+                // Black: R=0, G=0, B=0, A=255 (fully opaque)
+                byte[] blackBytes = new byte[] { 0, 0, 0, 255 };
+                // White: R=255, G=255, B=255, A=255 (fully opaque)
+                byte[] whiteBytes = new byte[] { 255, 255, 255, 255 };
+
+                byte[] qrCodeAsPngBytes = qrCode.GetGraphic(10, blackBytes, whiteBytes); // <-- Corrected arguments
 
                 using (var ms = new MemoryStream(qrCodeAsPngBytes))
                 {
@@ -239,7 +245,6 @@ namespace WhatsAppLinkerApp
                 qrPictureBox.Image = null;
             }
         }
-
         private void ClearQrDisplay()
         {
             if (qrPictureBox.Image != null)

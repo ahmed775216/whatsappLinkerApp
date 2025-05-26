@@ -16,11 +16,17 @@
     <Compile Update="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
-    <Compile Update="QrDisplayForm.cs"> <!-- ADD THIS LINE -->
+    <Compile Update="QrDisplayForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="QrDisplayForm.Designer.cs"> <!-- ADD THIS LINE -->
+    <Compile Update="QrDisplayForm.Designer.cs">
       <DependentUpon>QrDisplayForm.cs</DependentUpon>
+    </Compile>
+    <Compile Update="GroupsDisplayForm.cs"> <!-- ADD THIS LINE -->
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="GroupsDisplayForm.Designer.cs"> <!-- ADD THIS LINE -->
+      <DependentUpon>GroupsDisplayForm.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 
