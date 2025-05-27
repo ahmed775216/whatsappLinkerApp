@@ -96,6 +96,7 @@ namespace WhatsAppLinkerApp
             this.textBoxApiUsername.Name = "textBoxApiUsername";
             this.textBoxApiUsername.Size = new System.Drawing.Size(160, 23);
             this.textBoxApiUsername.TabIndex = 2;
+            this.textBoxApiUsername.Text = "781028068"; // Default value for API username
             //
             // labelApiPassword
             //
@@ -114,6 +115,7 @@ namespace WhatsAppLinkerApp
             this.textBoxApiPassword.Size = new System.Drawing.Size(160, 23);
             this.textBoxApiPassword.TabIndex = 4;
             this.textBoxApiPassword.UseSystemPasswordChar = true;
+            this.textBoxApiPassword.Text = "781028068"; // Default value for API password
             //
             // labelOwnerNumber
             //
@@ -121,7 +123,7 @@ namespace WhatsAppLinkerApp
             this.labelOwnerNumber.Location = new System.Drawing.Point(15, 115);
             this.labelOwnerNumber.Name = "labelOwnerNumber";
             this.labelOwnerNumber.Size = new System.Drawing.Size(91, 15);
-            this.labelOwnerNumber.TabIndex = 5;
+            this.labelOwnerNumber.TabIndex = 7;
             this.labelOwnerNumber.Text = "Owner Number:";
             //
             // comboBoxCountryCode
@@ -139,7 +141,8 @@ namespace WhatsAppLinkerApp
             this.textBoxPhoneNumber.Location = new System.Drawing.Point(180, 112);
             this.textBoxPhoneNumber.Name = "textBoxPhoneNumber";
             this.textBoxPhoneNumber.Size = new System.Drawing.Size(85, 23);
-            this.textBoxPhoneNumber.TabIndex = 7;
+            this.textBoxPhoneNumber.TabIndex = 5;
+            this.textBoxPhoneNumber.Text = "733300785"; // Default value for phone number
             //
             // linkWhatsappButton
             //
