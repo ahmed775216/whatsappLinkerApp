@@ -2,3 +2,17 @@
 *.exe
 *.txt
 *.dll
+WhatsAppLinkerApp/WhatsAppLinkerApp/obj/Debug/net8.0-windows/apphost.exe
+WhatsAppLinkerApp/WhatsAppLinkerApp/obj/Debug/net8.0-windows/WhatsAppLinkerApp.csproj.FileListAbsolute.txt
+WhatsAppLinkerApp/WhatsAppLinkerApp/obj/Debug/net8.0-windows/WhatsAppLinkerApp.assets.cache
+WhatsAppLinkerApp/Form1.ar-SA.resx
+WhatsAppLinkerApp/Form1.resx
+WhatsAppLinkerApp/GroupsDisplayForm.ar-SA.resx
+WhatsAppLinkerApp/GroupsDisplayForm.resx
+WhatsAppLinkerApp/QrDisplayForm.ar-SA.resx
+WhatsAppLinkerApp/QrDisplayForm.resx
+WhatsAppLinkerApp/WhatsAppLinkerApp.csproj.user
+WhatsAppLinkerApp/WhatsAppLinkerApp/.gitignore
+WhatsAppLinkerApp/WhatsAppLinkerApp/runToExtractCode.bat
+WhatsAppLinkerApp/Settings.settings
+WhatsAppLinkerApp/WhatsAppLinkerApp/obj/Debug/net8.0-windows/WhatsAppLinkerApp.assets.cache
