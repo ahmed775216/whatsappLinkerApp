@@ -51,6 +51,9 @@ namespace WhatsAppLinkerApp
             this.logTextBox = new System.Windows.Forms.TextBox();
             this.btnGetLogs = new System.Windows.Forms.Button();
             this.btnManageGroups = new System.Windows.Forms.Button();
+            // --- NEW: Declare btnClearCacheAndLogs ---
+            // this.btnClearCacheAndLogs = new System.Windows.Forms.Button();
+            // --- END NEW ---
             this.groupBoxCredentials = new System.Windows.Forms.GroupBox();
             this.groupBoxInstances = new System.Windows.Forms.GroupBox();
             this.groupBoxLogs = new System.Windows.Forms.GroupBox();
@@ -182,6 +185,9 @@ namespace WhatsAppLinkerApp
             this.groupBoxInstances.Controls.Add(this.btnStopAndDeleteInstance);
             this.groupBoxInstances.Controls.Add(this.btnRestartInstance);
             this.groupBoxInstances.Controls.Add(this.btnGetLogs);
+            // --- NEW: Add btnClearCacheAndLogs to groupBoxInstances ---
+            // this.groupBoxInstances.Controls.Add(this.btnClearCacheAndLogs);
+            // --- END NEW ---
             this.groupBoxInstances.Location = new System.Drawing.Point(300, 10);
             this.groupBoxInstances.Name = "groupBoxInstances";
             this.groupBoxInstances.Padding = new System.Windows.Forms.Padding(10);
@@ -323,6 +329,25 @@ namespace WhatsAppLinkerApp
             this.btnGetLogs.Text = "Get Logs";
             this.btnGetLogs.UseVisualStyleBackColor = false;
             //
+            // btnManageGroups
+            // (existing, no change in designer)
+            //
+            // --- NEW: btnClearCacheAndLogs properties ---
+            // this.btnClearCacheAndLogs.BackColor = System.Drawing.Color.DarkSlateGray;
+            // this.btnClearCacheAndLogs.Enabled = false;
+            // this.btnClearCacheAndLogs.FlatAppearance.BorderSize = 0;
+            // this.btnClearCacheAndLogs.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            // this.btnClearCacheAndLogs.ForeColor = System.Drawing.Color.White;
+            // this.btnClearCacheAndLogs.Location = new System.Drawing.Point(17, 270); // Adjusted position
+            // this.btnClearCacheAndLogs.Name = "btnClearCacheAndLogs";
+            // this.btnClearCacheAndLogs.Size = new System.Drawing.Size(250, 30);
+            // this.btnClearCacheAndLogs.TabIndex = 7; // New TabIndex
+            // this.btnClearCacheAndLogs.Text = "Clear Client Cache & Logs";
+            // this.btnClearCacheAndLogs.UseVisualStyleBackColor = false;
+            // this.btnClearCacheAndLogs = new System.Windows.Forms.Button();
+
+            // --- END NEW ---
+            //
             // groupBoxLogs
             //
             this.groupBoxLogs.BackColor = System.Drawing.Color.White;
@@ -342,7 +367,7 @@ namespace WhatsAppLinkerApp
             this.lblConnectionStatus.Location = new System.Drawing.Point(10, 560);
             this.lblConnectionStatus.Name = "lblConnectionStatus";
             this.lblConnectionStatus.Size = new System.Drawing.Size(115, 15);
-            this.lblConnectionStatus.TabIndex = 3; // Ensure TabIndex is correct
+            this.lblConnectionStatus.TabIndex = 3;
             this.lblConnectionStatus.Text = "Status: Connecting...";
             this.lblConnectionStatus.ForeColor = System.Drawing.Color.Goldenrod;
             //
@@ -352,7 +377,7 @@ namespace WhatsAppLinkerApp
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(237)))), ((int)(((byte)(237)))), ((int)(((byte)(237)))));
             this.ClientSize = new System.Drawing.Size(960, 580);
-            this.Controls.Add(this.lblConnectionStatus); // Add status label to form controls
+            this.Controls.Add(this.lblConnectionStatus);
             this.Controls.Add(this.groupBoxLogs);
             this.Controls.Add(this.groupBoxInstances);
             this.Controls.Add(this.groupBoxCredentials);
@@ -360,7 +385,7 @@ namespace WhatsAppLinkerApp
             // this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(976, 619);
             this.Name = "Form1";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "WhatsApp Bot Manager UI";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.groupBoxCredentials.ResumeLayout(false);
@@ -369,7 +394,7 @@ namespace WhatsAppLinkerApp
             this.groupBoxLogs.ResumeLayout(false);
             this.groupBoxLogs.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout(); // For lblConnectionStatus if it's directly on the form
+            this.PerformLayout();
 
         }
 
@@ -396,9 +421,12 @@ namespace WhatsAppLinkerApp
         private System.Windows.Forms.Button btnGetLogs;
         private System.Windows.Forms.Button btnStopAndDeleteInstance;
         private System.Windows.Forms.Button btnManageGroups;
+        // --- NEW: Declare btnClearCacheAndLogs in Designer ---
+        // private System.Windows.Forms.Button btnClearCacheAndLogs;
+        // --- END NEW ---
         private System.Windows.Forms.GroupBox groupBoxCredentials;
         private System.Windows.Forms.GroupBox groupBoxInstances;
         private System.Windows.Forms.GroupBox groupBoxLogs;
-        private System.Windows.Forms.Label lblConnectionStatus; // Declaration
+        private System.Windows.Forms.Label lblConnectionStatus;
     }
 }

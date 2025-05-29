@@ -9,22 +9,24 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json.Linq;
 using QRCoder;
-using System.Drawing;  // Ensure this NuGet package is installed
 
 namespace WhatsAppLinkerApp
 {
     public partial class QrDisplayForm : Form
     {
-        private ClientWebSocket _sharedWebSocketClient;
-        private CancellationTokenSource _sharedCancellationTokenSource;
+        // --- MODIFIED: Made nullable ---
+        private ClientWebSocket? _sharedWebSocketClient;
+        private CancellationTokenSource? _sharedCancellationTokenSource;
+        // --- END MODIFIED ---
 
-        private string _apiUsername;
-        private string _apiPassword;
-        private string _ownerNumber;
+        private string _apiUsername; // Will be initialized in constructor
+        private string _apiPassword; // Will be initialized in constructor
+        private string _ownerNumber; // Will be initialized in constructor
 
-        public event Action<string, string, string> ClientLinked;
+        // --- MODIFIED: Made nullable ---
+        public event Action<string, string, string>? ClientLinked;
+        // --- END MODIFIED ---
 
-        // Modified constructor to accept ownerNumber
         public QrDisplayForm(ClientWebSocket sharedWsClient, CancellationTokenSource sharedCts, string apiUsername, string apiPassword, string ownerNumber)
         {
             InitializeComponent();
@@ -37,11 +39,11 @@ namespace WhatsAppLinkerApp
             this.FormClosing += QrDisplayForm_FormClosing;
         }
 
-        private async void QrDisplayForm_Load(object sender, EventArgs e)
+        private async void QrDisplayForm_Load(object? sender, EventArgs e) // Made nullable
         {
             if (_sharedWebSocketClient != null && _sharedWebSocketClient.State == WebSocketState.Open)
             {
-                UpdateStatus("Connecting to manager. Requesting QR code...", Color.Goldenrod); // Amber for connecting
+                UpdateStatus("Connecting to manager. Requesting QR code...", Color.Goldenrod);
                 ClearQrDisplay();
                 await RequestQrFromManager(_apiUsername, _apiPassword, _ownerNumber);
             }
@@ -55,17 +57,12 @@ namespace WhatsAppLinkerApp
             }
         }
 
-        private void QrDisplayForm_FormClosing(object sender, FormClosingEventArgs e)
+        private void QrDisplayForm_FormClosing(object? sender, FormClosingEventArgs e) // Made nullable
         {
-            // If the form is closed not via DialogResult.OK (meaning linking failed or user canceled)
             if (this.DialogResult != DialogResult.OK)
             {
-                // If it wasn't a successful link and the form closes, assume cancellation or error,
-                // no explicit manualRelink needed here from QrDisplayForm as Form1's flow for failed linking handles this.
-                // Just ensuring cleanup of QR if any is shown
                 ClearQrDisplay();
             }
-            // No need to close/dispose the shared WebSocket here; Form1 owns it.
         }
 
         private async Task RequestQrFromManager(string apiUsername, string apiPassword, string ownerNumber)
@@ -80,9 +77,10 @@ namespace WhatsAppLinkerApp
                     ownerNumber = ownerNumber
                 };
                 var buffer = Encoding.UTF8.GetBytes(JObject.FromObject(request).ToString());
+                // --- MODIFIED: Use null-forgiving operator `!` ---
                 if (_sharedCancellationTokenSource != null && !_sharedCancellationTokenSource.IsCancellationRequested)
                 {
-                    await _sharedWebSocketClient.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, _sharedCancellationTokenSource.Token);
+                    await _sharedWebSocketClient.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, _sharedCancellationTokenSource!.Token);
                     UpdateStatus("Requested new QR code from bot manager...", Color.Goldenrod);
                 }
                 else
@@ -90,6 +88,7 @@ namespace WhatsAppLinkerApp
                     Console.WriteLine("Shared CancellationTokenSource is cancelled or null, cannot send requestQr.");
                     UpdateStatus("Request aborted.", Color.Red);
                 }
+                // --- END MODIFIED ---
             }
             else
             {
@@ -98,7 +97,6 @@ namespace WhatsAppLinkerApp
             }
         }
 
-        // Modified ManualRelinkFromManager - this was for button clicks previously, not strictly needed for the initial auto-link
         private async Task ManualRelinkFromManager()
         {
             if (_sharedWebSocketClient != null && _sharedWebSocketClient.State == WebSocketState.Open)
@@ -111,10 +109,12 @@ namespace WhatsAppLinkerApp
                     ownerNumber = _ownerNumber
                 };
                 var buffer = Encoding.UTF8.GetBytes(JObject.FromObject(request).ToString());
+                // --- MODIFIED: Use null-forgiving operator `!` ---
                 if (_sharedCancellationTokenSource != null && !_sharedCancellationTokenSource.IsCancellationRequested)
-                    await _sharedWebSocketClient.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, _sharedCancellationTokenSource.Token);
+                    await _sharedWebSocketClient.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, _sharedCancellationTokenSource!.Token);
                 else
                     Console.WriteLine("Shared CancellationTokenSource is cancelled or null, cannot send manual re-link request.");
+                // --- END MODIFIED ---
             }
             else
             {
@@ -130,18 +130,18 @@ namespace WhatsAppLinkerApp
                 try
                 {
                     JObject message = JObject.Parse(messageJson);
-                    string type = message["type"]?.ToString();
-                    string clientId = message["clientId"]?.ToString();
-                    string phoneNumber = message["phoneNumber"]?.ToString();
-                    string clientName = message["name"]?.ToString();
+                    string? type = message["type"]?.ToString(); // Made nullable
+                    string? clientId = message["clientId"]?.ToString(); // Made nullable
+                    string? phoneNumber = message["phoneNumber"]?.ToString(); // Made nullable
+                    string? clientName = message["name"]?.ToString(); // Made nullable
 
                     if (type == "qr")
                     {
-                        string qrData = message["qr"]?.ToString();
+                        string? qrData = message["qr"]?.ToString(); // Made nullable
                         if (!string.IsNullOrEmpty(qrData))
                         {
                             GenerateAndDisplayQr(qrData);
-                            UpdateStatus("Scan the QR code with WhatsApp on your phone. " + (clientId != null ? $" (Client: {clientId})" : ""), SystemColors.ControlText); // Default color for scan
+                            UpdateStatus("Scan the QR code with WhatsApp on your phone. " + (clientId != null ? $" (Client: {clientId})" : ""), SystemColors.ControlText);
                         }
                         else
                         {
@@ -151,23 +151,25 @@ namespace WhatsAppLinkerApp
                     }
                     else if (type == "status")
                     {
-                        string status = message["status"]?.ToString();
-                        string qrFromStatus = message["qr"]?.ToString(); // Manager might send QR even in status update
-                        string errorMsg = message["message"]?.ToString();
+                        string? status = message["status"]?.ToString(); // Made nullable
+                        string? qrFromStatus = message["qr"]?.ToString(); // Made nullable
+                        string? errorMsg = message["message"]?.ToString(); // Made nullable
 
                         switch (status)
                         {
                             case "connected":
-                                UpdateStatus($"WhatsApp Linked: {clientName ?? phoneNumber}!", Color.FromArgb(37, 211, 102)); // Bright Green
+                                UpdateStatus($"WhatsApp Linked: {clientName ?? phoneNumber}!", Color.FromArgb(37, 211, 102));
                                 ClearQrDisplay();
+                                // --- MODIFIED: Check if ClientLinked is null before invoking ---
                                 if (ClientLinked != null && clientId != null && phoneNumber != null)
                                 {
-                                    ClientLinked.Invoke(clientId, phoneNumber, clientName);
+                                    ClientLinked.Invoke(clientId, phoneNumber, clientName ?? ""); // Pass empty string if clientName is null
                                 }
-                                this.DialogResult = DialogResult.OK; // Signal successful completion
-                                this.Close(); // Close the form
+                                // --- END MODIFIED ---
+                                this.DialogResult = DialogResult.OK;
+                                this.Close();
                                 break;
-                            case "qr": // Should already be handled by specific 'qr' type message, but as fallback.
+                            case "qr":
                                 if (!string.IsNullOrEmpty(qrFromStatus))
                                 {
                                     GenerateAndDisplayQr(qrFromStatus);
@@ -181,21 +183,20 @@ namespace WhatsAppLinkerApp
                                 break;
                             case "disconnected_logout":
                             case "error":
-                            case "linking_failed": // These indicate failure in linking or existing connection issues
+                            case "linking_failed":
                                 UpdateStatus($"Linking Error: {errorMsg ?? "An unexpected error occurred."} Please try again.", Color.Red);
-                                ClearQrDisplay(); // Clear QR on error
-                                this.DialogResult = DialogResult.Abort; // Signal abortion/failure to parent
-                                // DO NOT CLOSE YET. Let user see the message. User will close manually.
+                                ClearQrDisplay();
+                                this.DialogResult = DialogResult.Abort;
                                 break;
                             case "connecting":
                             case "reconnecting":
                             case "linking_in_progress":
-                                UpdateStatus(errorMsg ?? "Connecting...", Color.Goldenrod); // Amber for connecting
+                                UpdateStatus(errorMsg ?? "Connecting...", Color.Goldenrod);
                                 if (!string.IsNullOrEmpty(qrFromStatus))
                                 {
                                     GenerateAndDisplayQr(qrFromStatus);
                                 }
-                                else { ClearQrDisplay(); } // Clear QR if not present in connecting status
+                                else { ClearQrDisplay(); }
                                 break;
                             default:
                                 UpdateStatus($"Status: {status}", Color.Gray);
@@ -225,13 +226,10 @@ namespace WhatsAppLinkerApp
 
                 PngByteQRCode qrCode = new PngByteQRCode(qrCodeData);
 
-                // FIX HERE: Use RGBA byte arrays for colors as expected by QRCoder 1.4.3's PngByteQRCode.GetGraphic
-                // Black: R=0, G=0, B=0, A=255 (fully opaque)
                 byte[] blackBytes = new byte[] { 0, 0, 0, 255 };
-                // White: R=255, G=255, B=255, A=255 (fully opaque)
                 byte[] whiteBytes = new byte[] { 255, 255, 255, 255 };
 
-                byte[] qrCodeAsPngBytes = qrCode.GetGraphic(10, blackBytes, whiteBytes); // <-- Corrected arguments
+                byte[] qrCodeAsPngBytes = qrCode.GetGraphic(10, blackBytes, whiteBytes);
 
                 using (var ms = new MemoryStream(qrCodeAsPngBytes))
                 {
