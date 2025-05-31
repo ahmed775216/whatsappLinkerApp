@@ -17,3 +17,7 @@ WhatsAppLinkerApp/WhatsAppLinkerApp/runToExtractCode.bat
 WhatsAppLinkerApp/Settings.settings
 WhatsAppLinkerApp/WhatsAppLinkerApp/obj/Debug/net8.0-windows/WhatsAppLinkerApp.assets.cache
 WhatsAppLinkerApp/WhatsAppLinkerApp/obj/Debug/net8.0-windows/apphost.exe
+WhatsAppLinkerApp/WhatsAppLinkerAppSingleInstance/
+**.cs
+WhatsAppLinkerApp/WhatsAppLinkerAppSingleInstance/
+**.exe

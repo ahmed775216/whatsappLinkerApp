@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\AhmedPc\\Documents\\Dev\\C#\\apitest\\WhatsAppLinkerApp\\WhatsAppLinkerApp\\WhatsAppLinkerApp.csproj": {}
+    "c:\\Users\\AhmedPc\\Documents\\Dev\\C#\\apitest\\WhatsAppLinkerApp\\WhatsAppLinkerApp\\WhatsAppLinkerApp.csproj": {}
   },
   "projects": {
-    "C:\\Users\\AhmedPc\\Documents\\Dev\\C#\\apitest\\WhatsAppLinkerApp\\WhatsAppLinkerApp\\WhatsAppLinkerApp.csproj": {
+    "c:\\Users\\AhmedPc\\Documents\\Dev\\C#\\apitest\\WhatsAppLinkerApp\\WhatsAppLinkerApp\\WhatsAppLinkerApp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\AhmedPc\\Documents\\Dev\\C#\\apitest\\WhatsAppLinkerApp\\WhatsAppLinkerApp\\WhatsAppLinkerApp.csproj",
+        "projectUniqueName": "c:\\Users\\AhmedPc\\Documents\\Dev\\C#\\apitest\\WhatsAppLinkerApp\\WhatsAppLinkerApp\\WhatsAppLinkerApp.csproj",
         "projectName": "WhatsAppLinkerApp",
-        "projectPath": "C:\\Users\\AhmedPc\\Documents\\Dev\\C#\\apitest\\WhatsAppLinkerApp\\WhatsAppLinkerApp\\WhatsAppLinkerApp.csproj",
+        "projectPath": "c:\\Users\\AhmedPc\\Documents\\Dev\\C#\\apitest\\WhatsAppLinkerApp\\WhatsAppLinkerApp\\WhatsAppLinkerApp.csproj",
         "packagesPath": "C:\\Users\\AhmedPc\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\AhmedPc\\Documents\\Dev\\C#\\apitest\\WhatsAppLinkerApp\\WhatsAppLinkerApp\\obj\\",
+        "outputPath": "c:\\Users\\AhmedPc\\Documents\\Dev\\C#\\apitest\\WhatsAppLinkerApp\\WhatsAppLinkerApp\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\AhmedPc\\AppData\\Roaming\\NuGet\\NuGet.Config"
