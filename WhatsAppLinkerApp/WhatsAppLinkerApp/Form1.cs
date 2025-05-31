@@ -95,10 +95,18 @@ namespace WhatsAppLinkerApp
         {
             var countryCodes = new List<string>
             {
-                "+967 (Yemen)", "+966 (Saudi Arabia)", "+971 (UAE)",
-                "+20 (Egypt)", "+973 (Bahrain)", "+974 (Qatar)",
-                "+965 (Kuwait)", "+968 (Oman)", "+1 (USA/Canada)",
-                "+44 (UK)", "+49 (Germany)", "+33 (France)"
+                "🇾🇪 +967", // Yemen
+                "🇸🇦 +966", // Saudi Arabia
+                "🇦🇪 +971", // UAE
+                "🇪🇬 +20",  // Egypt
+                "🇧🇭 +973", // Bahrain
+                "🇶🇦 +974", // Qatar
+                "🇰🇼 +965", // Kuwait
+                "🇴🇲 +968", // Oman
+                "🇺🇸 +1",   // USA/Canada (Using US flag for simplicity for +1)
+                "🇬🇧 +44",  // UK
+                "🇩🇪 +49",  // Germany
+                "🇫🇷 +33"   // France
             };
             comboBoxCountryCode.Items.AddRange(countryCodes.ToArray());
             var defaultYemen = countryCodes.FirstOrDefault(c => c.StartsWith("+967"));
