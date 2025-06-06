@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "c:\\Users\\AhmedPc\\Documents\\Dev\\C#\\apitest\\WhatsAppLinkerApp\\WhatsAppLinkerApp\\WhatsAppLinkerApp.csproj": {}
+    "C:\\Users\\AhmedPc\\Documents\\Dev\\C#\\apitest\\WhatsAppLinkerApp\\WhatsAppLinkerApp\\WhatsAppLinkerApp.csproj": {}
   },
   "projects": {
-    "c:\\Users\\AhmedPc\\Documents\\Dev\\C#\\apitest\\WhatsAppLinkerApp\\WhatsAppLinkerApp\\WhatsAppLinkerApp.csproj": {
+    "C:\\Users\\AhmedPc\\Documents\\Dev\\C#\\apitest\\WhatsAppLinkerApp\\WhatsAppLinkerApp\\WhatsAppLinkerApp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\Users\\AhmedPc\\Documents\\Dev\\C#\\apitest\\WhatsAppLinkerApp\\WhatsAppLinkerApp\\WhatsAppLinkerApp.csproj",
+        "projectUniqueName": "C:\\Users\\AhmedPc\\Documents\\Dev\\C#\\apitest\\WhatsAppLinkerApp\\WhatsAppLinkerApp\\WhatsAppLinkerApp.csproj",
         "projectName": "WhatsAppLinkerApp",
-        "projectPath": "c:\\Users\\AhmedPc\\Documents\\Dev\\C#\\apitest\\WhatsAppLinkerApp\\WhatsAppLinkerApp\\WhatsAppLinkerApp.csproj",
+        "projectPath": "C:\\Users\\AhmedPc\\Documents\\Dev\\C#\\apitest\\WhatsAppLinkerApp\\WhatsAppLinkerApp\\WhatsAppLinkerApp.csproj",
         "packagesPath": "C:\\Users\\AhmedPc\\.nuget\\packages\\",
-        "outputPath": "c:\\Users\\AhmedPc\\Documents\\Dev\\C#\\apitest\\WhatsAppLinkerApp\\WhatsAppLinkerApp\\obj\\",
+        "outputPath": "C:\\Users\\AhmedPc\\Documents\\Dev\\C#\\apitest\\WhatsAppLinkerApp\\WhatsAppLinkerApp\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\AhmedPc\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -44,9 +44,17 @@
         "net8.0-windows7.0": {
           "targetAlias": "net8.0-windows",
           "dependencies": {
+            "Dapper": {
+              "target": "Package",
+              "version": "[2.1.66, )"
+            },
             "Newtonsoft.Json": {
               "target": "Package",
               "version": "[13.0.3, )"
+            },
+            "Npgsql": {
+              "target": "Package",
+              "version": "[9.0.3, )"
             },
             "QRCoder": {
               "target": "Package",

@@ -21,3 +21,6 @@ WhatsAppLinkerApp/WhatsAppLinkerAppSingleInstance/
 **.cs
 WhatsAppLinkerApp/WhatsAppLinkerAppSingleInstance/
 **.exe
+WhatsAppLinkerApp/WhatsAppLinkerApp/obj/project.nuget.cache
+WhatsAppLinkerApp/WhatsAppLinkerApp/obj/WhatsAppLinkerApp.csproj.nuget.dgspec.json
+WhatsAppLinkerApp/WhatsAppLinkerApp/obj/Debug/net8.0-windows/WhatsAppLinkerApp.assets.cache

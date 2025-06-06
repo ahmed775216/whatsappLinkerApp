@@ -1,16 +1,14 @@
-﻿
-// Form1.Designer.cs
-namespace WhatsAppLinkerApp
+﻿namespace WhatsAppLinkerApp
 {
     partial class Form1
     {
         /// <summary>
-        ///  Required designer variable.
+        /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
 
         /// <summary>
-        ///  Clean up any resources being used.
+        /// Clean up any resources being used.
         /// </summary>
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
@@ -25,11 +23,12 @@ namespace WhatsAppLinkerApp
         #region Windows Form Designer generated code
 
         /// <summary>
-        ///  Required method for Designer support - do not modify
-        ///  the contents of this method with the code editor.
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container(); // Ensure this line exists for ContextMenu
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.mainTableLayout = new System.Windows.Forms.TableLayoutPanel();
             this.topPanel = new System.Windows.Forms.Panel();
@@ -61,6 +60,7 @@ namespace WhatsAppLinkerApp
             this.colPhoneNumber = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colStatus = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colLastSeen = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader())); // ADDED: LastSeen column
             this.instanceButtonsFlow = new System.Windows.Forms.FlowLayoutPanel();
             this.btnRefreshInstances = new System.Windows.Forms.Button();
             this.btnStartInstance = new System.Windows.Forms.Button();
@@ -69,7 +69,10 @@ namespace WhatsAppLinkerApp
             this.btnStopAndDeleteInstance = new System.Windows.Forms.Button();
             this.btnGetLogs = new System.Windows.Forms.Button();
             this.groupBoxLogs = new System.Windows.Forms.GroupBox();
-            this.logTextBox = new System.Windows.Forms.TextBox();
+            this.logTextBox = new System.Windows.Forms.RichTextBox();
+            this.instanceContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components); // ADDED: ContextMenu
+            this.setAliasToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem(); // ADDED: Set Alias item
+            this.lblInstanceCount = new System.Windows.Forms.Label(); // ADDED: Label for instance count
             this.mainTableLayout.SuspendLayout();
             this.topPanel.SuspendLayout();
             this.statusStrip.SuspendLayout();
@@ -91,10 +94,26 @@ namespace WhatsAppLinkerApp
             this.instancesTableLayout.SuspendLayout();
             this.instanceButtonsFlow.SuspendLayout();
             this.groupBoxLogs.SuspendLayout();
+            this.instanceContextMenuStrip.SuspendLayout(); // Add this line
             this.SuspendLayout();
-            // 
+            //
             // mainTableLayout
-            // 
+            //
+            //
+
+            this.instancesTableLayout.Controls.Add(this.instanceButtonsFlow, 0, 1);
+            // Add this declaration:
+            this.lblInstanceCount = new System.Windows.Forms.Label();
+            // Add this control to the groupbox:
+            this.groupBoxInstances.Controls.Add(this.lblInstanceCount);
+            this.lblInstanceCount.AutoSize = true;
+            this.lblInstanceCount.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.lblInstanceCount.Location = new System.Drawing.Point(15, 310); // Adjust location as needed
+            this.lblInstanceCount.Name = "lblInstanceCount";
+            this.lblInstanceCount.Size = new System.Drawing.Size(70, 15);
+            this.lblInstanceCount.TabIndex = 2; // Adjust TabIndex as appropriate
+            this.lblInstanceCount.Text = "Total: 0";
+
             this.mainTableLayout.ColumnCount = 1;
             this.mainTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.mainTableLayout.Controls.Add(this.topPanel, 0, 0);
@@ -109,9 +128,9 @@ namespace WhatsAppLinkerApp
             this.mainTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.mainTableLayout.Size = new System.Drawing.Size(1024, 768);
             this.mainTableLayout.TabIndex = 0;
-            // 
+            //
             // topPanel
-            // 
+            //
             this.topPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(7)))), ((int)(((byte)(94)))), ((int)(((byte)(84)))));
             this.topPanel.Controls.Add(this.titleLabel);
             this.topPanel.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -120,9 +139,9 @@ namespace WhatsAppLinkerApp
             this.topPanel.Name = "topPanel";
             this.topPanel.Size = new System.Drawing.Size(1024, 50);
             this.topPanel.TabIndex = 0;
-            // 
+            //
             // titleLabel
-            // 
+            //
             this.titleLabel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.titleLabel.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Bold);
             this.titleLabel.ForeColor = System.Drawing.Color.White;
@@ -132,9 +151,10 @@ namespace WhatsAppLinkerApp
             this.titleLabel.TabIndex = 0;
             this.titleLabel.Text = "WhatsApp Bot Manager";
             this.titleLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
+            //
             // statusStrip
-            // 
+            //
+            this.statusStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.lblConnectionStatus});
             this.statusStrip.Location = new System.Drawing.Point(0, 743);
@@ -142,35 +162,35 @@ namespace WhatsAppLinkerApp
             this.statusStrip.Size = new System.Drawing.Size(1024, 25);
             this.statusStrip.TabIndex = 1;
             this.statusStrip.Text = "statusStrip1";
-            // 
+            //
             // lblConnectionStatus
-            // 
-            this.lblConnectionStatus.Name = "lblConnectionStatus";
-            this.lblConnectionStatus.Size = new System.Drawing.Size(115, 20);
-            this.lblConnectionStatus.Text = "Status: Connecting...";
+            //
             this.lblConnectionStatus.ForeColor = System.Drawing.Color.Goldenrod;
-            // 
+            this.lblConnectionStatus.Name = "lblConnectionStatus";
+            this.lblConnectionStatus.Size = new System.Drawing.Size(131, 20);
+            this.lblConnectionStatus.Text = "Status: Connecting...";
+            //
             // splitContainer
-            // 
+            //
             this.splitContainer.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splitContainer.Location = new System.Drawing.Point(3, 53);
             this.splitContainer.Name = "splitContainer";
-            // 
+            //
             // splitContainer.Panel1
-            // 
+            //
             this.splitContainer.Panel1.Controls.Add(this.leftPanel);
             this.splitContainer.Panel1MinSize = 300;
-            // 
+            //
             // splitContainer.Panel2
-            // 
+            //
             this.splitContainer.Panel2.Controls.Add(this.rightPanel);
             this.splitContainer.Panel2MinSize = 400;
             this.splitContainer.Size = new System.Drawing.Size(1018, 687);
             this.splitContainer.SplitterDistance = 320;
             this.splitContainer.TabIndex = 2;
-            // 
+            //
             // leftPanel
-            // 
+            //
             this.leftPanel.Controls.Add(this.groupBoxCredentials);
             this.leftPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.leftPanel.Location = new System.Drawing.Point(0, 0);
@@ -178,9 +198,9 @@ namespace WhatsAppLinkerApp
             this.leftPanel.Padding = new System.Windows.Forms.Padding(10);
             this.leftPanel.Size = new System.Drawing.Size(320, 687);
             this.leftPanel.TabIndex = 0;
-            // 
+            //
             // groupBoxCredentials
-            // 
+            //
             this.groupBoxCredentials.BackColor = System.Drawing.Color.White;
             this.groupBoxCredentials.Controls.Add(this.credentialsTableLayout);
             this.groupBoxCredentials.Dock = System.Windows.Forms.DockStyle.Top;
@@ -192,9 +212,9 @@ namespace WhatsAppLinkerApp
             this.groupBoxCredentials.TabIndex = 0;
             this.groupBoxCredentials.TabStop = false;
             this.groupBoxCredentials.Text = "New WhatsApp Connection";
-            // 
+            //
             // credentialsTableLayout
-            // 
+            //
             this.credentialsTableLayout.ColumnCount = 2;
             this.credentialsTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 110F));
             this.credentialsTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
@@ -215,9 +235,9 @@ namespace WhatsAppLinkerApp
             this.credentialsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.credentialsTableLayout.Size = new System.Drawing.Size(270, 302);
             this.credentialsTableLayout.TabIndex = 0;
-            // 
+            //
             // labelApiUsername
-            // 
+            //
             this.labelApiUsername.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.labelApiUsername.AutoSize = true;
             this.labelApiUsername.Location = new System.Drawing.Point(3, 10);
@@ -225,9 +245,9 @@ namespace WhatsAppLinkerApp
             this.labelApiUsername.Size = new System.Drawing.Size(104, 19);
             this.labelApiUsername.TabIndex = 0;
             this.labelApiUsername.Text = "API Username:";
-            // 
+            //
             // textBoxApiUsername
-            // 
+            //
             this.textBoxApiUsername.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxApiUsername.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.textBoxApiUsername.Font = new System.Drawing.Font("Segoe UI", 9F);
@@ -236,9 +256,9 @@ namespace WhatsAppLinkerApp
             this.textBoxApiUsername.Size = new System.Drawing.Size(154, 23);
             this.textBoxApiUsername.TabIndex = 1;
             this.textBoxApiUsername.Text = "781028068";
-            // 
+            //
             // labelApiPassword
-            // 
+            //
             this.labelApiPassword.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.labelApiPassword.AutoSize = true;
             this.labelApiPassword.Location = new System.Drawing.Point(3, 50);
@@ -246,11 +266,9 @@ namespace WhatsAppLinkerApp
             this.labelApiPassword.Size = new System.Drawing.Size(98, 19);
             this.labelApiPassword.TabIndex = 2;
             this.labelApiPassword.Text = "API Password:";
-            // 
+            //
             // textBoxApiPassword
-            // 
-                      // textBoxApiPassword
-            // 
+            //
             this.textBoxApiPassword.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxApiPassword.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.textBoxApiPassword.Font = new System.Drawing.Font("Segoe UI", 9F);
@@ -260,9 +278,9 @@ namespace WhatsAppLinkerApp
             this.textBoxApiPassword.TabIndex = 3;
             this.textBoxApiPassword.Text = "781028068";
             this.textBoxApiPassword.UseSystemPasswordChar = true;
-            // 
+            //
             // labelOwnerNumber
-            // 
+            //
             this.labelOwnerNumber.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.labelOwnerNumber.AutoSize = true;
             this.labelOwnerNumber.Location = new System.Drawing.Point(3, 90);
@@ -270,9 +288,9 @@ namespace WhatsAppLinkerApp
             this.labelOwnerNumber.Size = new System.Drawing.Size(104, 19);
             this.labelOwnerNumber.TabIndex = 4;
             this.labelOwnerNumber.Text = "Owner Number:";
-            // 
+            //
             // phonePanel
-            // 
+            //
             this.phonePanel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
             this.phonePanel.Controls.Add(this.comboBoxCountryCode);
             this.phonePanel.Controls.Add(this.textBoxPhoneNumber);
@@ -280,9 +298,9 @@ namespace WhatsAppLinkerApp
             this.phonePanel.Name = "phonePanel";
             this.phonePanel.Size = new System.Drawing.Size(154, 34);
             this.phonePanel.TabIndex = 5;
-            // 
+            //
             // comboBoxCountryCode
-            // 
+            //
             this.comboBoxCountryCode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBoxCountryCode.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.comboBoxCountryCode.FormattingEnabled = true;
@@ -290,10 +308,10 @@ namespace WhatsAppLinkerApp
             this.comboBoxCountryCode.Name = "comboBoxCountryCode";
             this.comboBoxCountryCode.Size = new System.Drawing.Size(60, 23);
             this.comboBoxCountryCode.TabIndex = 0;
-            // 
+            //
             // textBoxPhoneNumber
-            // 
-            this.textBoxPhoneNumber.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            //
+            this.textBoxPhoneNumber.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxPhoneNumber.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.textBoxPhoneNumber.Font = new System.Drawing.Font("Segoe UI", 9F);
@@ -302,9 +320,9 @@ namespace WhatsAppLinkerApp
             this.textBoxPhoneNumber.Size = new System.Drawing.Size(88, 23);
             this.textBoxPhoneNumber.TabIndex = 1;
             this.textBoxPhoneNumber.Text = "733300785";
-            // 
+            //
             // buttonsFlowLayout
-            // 
+            //
             this.credentialsTableLayout.SetColumnSpan(this.buttonsFlowLayout, 2);
             this.buttonsFlowLayout.Controls.Add(this.linkWhatsappButton);
             this.buttonsFlowLayout.Controls.Add(this.btnManageGroups);
@@ -315,9 +333,9 @@ namespace WhatsAppLinkerApp
             this.buttonsFlowLayout.Name = "buttonsFlowLayout";
             this.buttonsFlowLayout.Size = new System.Drawing.Size(264, 176);
             this.buttonsFlowLayout.TabIndex = 6;
-            // 
+            //
             // linkWhatsappButton
-            // 
+            //
             this.linkWhatsappButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(211)))), ((int)(((byte)(102)))));
             this.linkWhatsappButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.linkWhatsappButton.Enabled = false;
@@ -333,9 +351,10 @@ namespace WhatsAppLinkerApp
             this.linkWhatsappButton.TabIndex = 0;
             this.linkWhatsappButton.Text = "Link New WhatsApp Account";
             this.linkWhatsappButton.UseVisualStyleBackColor = false;
-            // 
+            this.linkWhatsappButton.Click += new System.EventHandler(this.linkWhatsappButton_Click); // Hook up event
+            //
             // btnManageGroups
-            // 
+            //
             this.btnManageGroups.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(18)))), ((int)(((byte)(140)))), ((int)(((byte)(126)))));
             this.btnManageGroups.Cursor = System.Windows.Forms.Cursors.Hand;
             this.btnManageGroups.Enabled = false;
@@ -351,27 +370,29 @@ namespace WhatsAppLinkerApp
             this.btnManageGroups.TabIndex = 1;
             this.btnManageGroups.Text = "Manage Groups for Selected Client";
             this.btnManageGroups.UseVisualStyleBackColor = false;
-            // 
+            this.btnManageGroups.Click += new System.EventHandler(this.btnManageGroups_Click); // Hook up event
+            //
             // btnClearCacheAndLogs
-            // 
-            this.btnClearCacheAndLogs.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(47)))), ((int)(((byte)(79)))), ((int)(((byte)(79)))));
-            this.btnClearCacheAndLogs.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnClearCacheAndLogs.Enabled = false;
-            this.btnClearCacheAndLogs.FlatAppearance.BorderSize = 0;
-            this.btnClearCacheAndLogs.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(68)))), ((int)(((byte)(68)))));
-            this.btnClearCacheAndLogs.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(54)))), ((int)(((byte)(90)))), ((int)(((byte)(90)))));
-            this.btnClearCacheAndLogs.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnClearCacheAndLogs.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.btnClearCacheAndLogs.ForeColor = System.Drawing.Color.White;
-            this.btnClearCacheAndLogs.Location = new System.Drawing.Point(3, 90);
-            this.btnClearCacheAndLogs.Name = "btnClearCacheAndLogs";
-            this.btnClearCacheAndLogs.Size = new System.Drawing.Size(258, 35);
-            this.btnClearCacheAndLogs.TabIndex = 2;
-            this.btnClearCacheAndLogs.Text = "Clear Client Cache && Logs";
-            this.btnClearCacheAndLogs.UseVisualStyleBackColor = false;
-            // 
+            // //
+            // this.btnClearCacheAndLogs.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(47)))), ((int)(((byte)(79)))), ((int)(((byte)(79)))));
+            // this.btnClearCacheAndLogs.Cursor = System.Windows.Forms.Cursors.Hand;
+            // this.btnClearCacheAndLogs.Enabled = false;
+            // this.btnClearCacheAndLogs.FlatAppearance.BorderSize = 0;
+            // this.btnClearCacheAndLogs.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(68)))), ((int)(((byte)(68)))));
+            // this.btnClearCacheAndLogs.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(54)))), ((int)(((byte)(90)))), ((int)(((byte)(90)))));
+            // this.btnClearCacheAndLogs.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            // this.btnClearCacheAndLogs.Font = new System.Drawing.Font("Segoe UI", 9F);
+            // this.btnClearCacheAndLogs.ForeColor = System.Drawing.Color.White;
+            // this.btnClearCacheAndLogs.Location = new System.Drawing.Point(3, 90);
+            // this.btnClearCacheAndLogs.Name = "btnClearCacheAndLogs";
+            // this.btnClearCacheAndLogs.Size = new System.Drawing.Size(258, 35);
+            // this.btnClearCacheAndLogs.TabIndex = 2;
+            // this.btnClearCacheAndLogs.Text = "Clear Client Cache && Logs";
+            // this.btnClearCacheAndLogs.UseVisualStyleBackColor = false;
+            // this.btnClearCacheAndLogs.Click += new System.EventHandler(this.btnClearCacheAndLogs_Click); // Hook up event
+            //
             // rightPanel
-            // 
+            //
             this.rightPanel.Controls.Add(this.rightSplitContainer);
             this.rightPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.rightPanel.Location = new System.Drawing.Point(0, 0);
@@ -379,29 +400,29 @@ namespace WhatsAppLinkerApp
             this.rightPanel.Padding = new System.Windows.Forms.Padding(0, 10, 10, 10);
             this.rightPanel.Size = new System.Drawing.Size(694, 687);
             this.rightPanel.TabIndex = 0;
-            // 
+            //
             // rightSplitContainer
-            // 
+            //
             this.rightSplitContainer.Dock = System.Windows.Forms.DockStyle.Fill;
             this.rightSplitContainer.Location = new System.Drawing.Point(0, 10);
             this.rightSplitContainer.Name = "rightSplitContainer";
             this.rightSplitContainer.Orientation = System.Windows.Forms.Orientation.Horizontal;
-            // 
+            //
             // rightSplitContainer.Panel1
-            // 
+            //
             this.rightSplitContainer.Panel1.Controls.Add(this.groupBoxInstances);
             this.rightSplitContainer.Panel1MinSize = 200;
-            // 
+            //
             // rightSplitContainer.Panel2
-            // 
+            //
             this.rightSplitContainer.Panel2.Controls.Add(this.groupBoxLogs);
             this.rightSplitContainer.Panel2MinSize = 150;
             this.rightSplitContainer.Size = new System.Drawing.Size(684, 667);
             this.rightSplitContainer.SplitterDistance = 350;
             this.rightSplitContainer.TabIndex = 0;
-            // 
+            //
             // groupBoxInstances
-            // 
+            //
             this.groupBoxInstances.BackColor = System.Drawing.Color.White;
             this.groupBoxInstances.Controls.Add(this.instancesTableLayout);
             this.groupBoxInstances.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -413,9 +434,9 @@ namespace WhatsAppLinkerApp
             this.groupBoxInstances.TabIndex = 0;
             this.groupBoxInstances.TabStop = false;
             this.groupBoxInstances.Text = "Bot Instances";
-            // 
+            //
             // instancesTableLayout
-            // 
+            //
             this.instancesTableLayout.ColumnCount = 1;
             this.instancesTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.instancesTableLayout.Controls.Add(this.instanceListView, 0, 0);
@@ -428,15 +449,17 @@ namespace WhatsAppLinkerApp
             this.instancesTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 45F));
             this.instancesTableLayout.Size = new System.Drawing.Size(654, 302);
             this.instancesTableLayout.TabIndex = 0;
-            // 
+            //
             // instanceListView
-            // 
+            //
             this.instanceListView.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.instanceListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.colClientId,
             this.colPhoneNumber,
             this.colName,
-            this.colStatus});
+            this.colStatus,
+            this.colLastSeen}); // ADDED: LastSeen column
+            this.instanceListView.ContextMenuStrip = this.instanceContextMenuStrip; // ADDED: ContextMenu
             this.instanceListView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.instanceListView.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.instanceListView.FullRowSelect = true;
@@ -450,33 +473,37 @@ namespace WhatsAppLinkerApp
             this.instanceListView.TabIndex = 0;
             this.instanceListView.UseCompatibleStateImageBehavior = false;
             this.instanceListView.View = System.Windows.Forms.View.Details;
-            // 
+            this.instanceListView.SelectedIndexChanged += new System.EventHandler(this.instanceListView_SelectedIndexChanged); // Hook up event
+            this.instanceListView.DrawColumnHeader += new System.Windows.Forms.DrawListViewColumnHeaderEventHandler(this.instanceListView_DrawColumnHeader); // Hook up event
+            this.instanceListView.DrawSubItem += new System.Windows.Forms.DrawListViewSubItemEventHandler(this.instanceListView_DrawSubItem); // Hook up event
+            //
             // colClientId
-            // 
+            //
             this.colClientId.Text = "Client ID";
             this.colClientId.Width = 150;
-            // 
+            //
             // colPhoneNumber
-            // 
+            //
             this.colPhoneNumber.Text = "Phone Number";
             this.colPhoneNumber.Width = 120;
-            // 
+            //
             // colName
-            // 
-            this.colName.Text = "Name";
+            //
+            this.colName.Text = "Alias/Number"; // Changed text
             this.colName.Width = 150;
-            // 
+            //
             // colStatus
-            // 
-            this.colStatus.Text = "Status";
-            
-            // colStatus
-            // 
+            //
             this.colStatus.Text = "Status";
             this.colStatus.Width = 120;
-            // 
+            //
+            // colLastSeen
+            //
+            this.colLastSeen.Text = "Last Seen";
+            this.colLastSeen.Width = 100; // Adjust width as needed
+            //
             // instanceButtonsFlow
-            // 
+            //
             this.instanceButtonsFlow.Controls.Add(this.btnRefreshInstances);
             this.instanceButtonsFlow.Controls.Add(this.btnStartInstance);
             this.instanceButtonsFlow.Controls.Add(this.btnStopInstance);
@@ -488,9 +515,9 @@ namespace WhatsAppLinkerApp
             this.instanceButtonsFlow.Name = "instanceButtonsFlow";
             this.instanceButtonsFlow.Size = new System.Drawing.Size(648, 39);
             this.instanceButtonsFlow.TabIndex = 1;
-            // 
+            //
             // btnRefreshInstances
-            // 
+            //
             this.btnRefreshInstances.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(18)))), ((int)(((byte)(140)))), ((int)(((byte)(126)))));
             this.btnRefreshInstances.Cursor = System.Windows.Forms.Cursors.Hand;
             this.btnRefreshInstances.FlatAppearance.BorderSize = 0;
@@ -505,9 +532,10 @@ namespace WhatsAppLinkerApp
             this.btnRefreshInstances.TabIndex = 0;
             this.btnRefreshInstances.Text = "Refresh List";
             this.btnRefreshInstances.UseVisualStyleBackColor = false;
-            // 
+            this.btnRefreshInstances.Click += new System.EventHandler(this.btnRefreshInstances_Click); // Hook up event
+            //
             // btnStartInstance
-            // 
+            //
             this.btnStartInstance.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(211)))), ((int)(((byte)(102)))));
             this.btnStartInstance.Cursor = System.Windows.Forms.Cursors.Hand;
             this.btnStartInstance.FlatAppearance.BorderSize = 0;
@@ -522,9 +550,10 @@ namespace WhatsAppLinkerApp
             this.btnStartInstance.TabIndex = 1;
             this.btnStartInstance.Text = "Start";
             this.btnStartInstance.UseVisualStyleBackColor = false;
-            // 
+            this.btnStartInstance.Click += new System.EventHandler(this.btnStartInstance_Click); // Hook up event
+            //
             // btnStopInstance
-            // 
+            //
             this.btnStopInstance.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(205)))), ((int)(((byte)(92)))), ((int)(((byte)(92)))));
             this.btnStopInstance.Cursor = System.Windows.Forms.Cursors.Hand;
             this.btnStopInstance.FlatAppearance.BorderSize = 0;
@@ -539,9 +568,10 @@ namespace WhatsAppLinkerApp
             this.btnStopInstance.TabIndex = 2;
             this.btnStopInstance.Text = "Stop";
             this.btnStopInstance.UseVisualStyleBackColor = false;
-            // 
+            this.btnStopInstance.Click += new System.EventHandler(this.btnStopInstance_Click); // Hook up event
+            //
             // btnRestartInstance
-            // 
+            //
             this.btnRestartInstance.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(218)))), ((int)(((byte)(165)))), ((int)(((byte)(32)))));
             this.btnRestartInstance.Cursor = System.Windows.Forms.Cursors.Hand;
             this.btnRestartInstance.FlatAppearance.BorderSize = 0;
@@ -556,9 +586,10 @@ namespace WhatsAppLinkerApp
             this.btnRestartInstance.TabIndex = 3;
             this.btnRestartInstance.Text = "Restart";
             this.btnRestartInstance.UseVisualStyleBackColor = false;
-            // 
+            this.btnRestartInstance.Click += new System.EventHandler(this.btnRestartInstance_Click); // Hook up event
+            //
             // btnStopAndDeleteInstance
-            // 
+            //
             this.btnStopAndDeleteInstance.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(178)))), ((int)(((byte)(34)))), ((int)(((byte)(34)))));
             this.btnStopAndDeleteInstance.Cursor = System.Windows.Forms.Cursors.Hand;
             this.btnStopAndDeleteInstance.FlatAppearance.BorderSize = 0;
@@ -573,9 +604,10 @@ namespace WhatsAppLinkerApp
             this.btnStopAndDeleteInstance.TabIndex = 4;
             this.btnStopAndDeleteInstance.Text = "Stop && Delete";
             this.btnStopAndDeleteInstance.UseVisualStyleBackColor = false;
-            // 
+            this.btnStopAndDeleteInstance.Click += new System.EventHandler(this.btnStopAndDeleteInstance_Click); // Hook up event
+            //
             // btnGetLogs
-            // 
+            //
             this.btnGetLogs.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(70)))), ((int)(((byte)(130)))), ((int)(((byte)(180)))));
             this.btnGetLogs.Cursor = System.Windows.Forms.Cursors.Hand;
             this.btnGetLogs.FlatAppearance.BorderSize = 0;
@@ -590,9 +622,10 @@ namespace WhatsAppLinkerApp
             this.btnGetLogs.TabIndex = 5;
             this.btnGetLogs.Text = "Get Logs";
             this.btnGetLogs.UseVisualStyleBackColor = false;
-            // 
+            this.btnGetLogs.Click += new System.EventHandler(this.btnGetLogs_Click); // Hook up event
+            //
             // groupBoxLogs
-            // 
+            //
             this.groupBoxLogs.BackColor = System.Drawing.Color.White;
             this.groupBoxLogs.Controls.Add(this.logTextBox);
             this.groupBoxLogs.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -604,9 +637,9 @@ namespace WhatsAppLinkerApp
             this.groupBoxLogs.TabIndex = 0;
             this.groupBoxLogs.TabStop = false;
             this.groupBoxLogs.Text = "Instance Logs";
-            // 
+            //
             // logTextBox
-            // 
+            //
             this.logTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(44)))), ((int)(((byte)(51)))));
             this.logTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.logTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -616,12 +649,28 @@ namespace WhatsAppLinkerApp
             this.logTextBox.Multiline = true;
             this.logTextBox.Name = "logTextBox";
             this.logTextBox.ReadOnly = true;
-            this.logTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            // this.logTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.logTextBox.Size = new System.Drawing.Size(654, 265);
             this.logTextBox.TabIndex = 0;
-            // 
+            //
+            // instanceContextMenuStrip
+            //
+            this.instanceContextMenuStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.instanceContextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.setAliasToolStripMenuItem});
+            this.instanceContextMenuStrip.Name = "instanceContextMenuStrip";
+            this.instanceContextMenuStrip.Size = new System.Drawing.Size(181, 28); // Adjusted Size
+            this.instanceContextMenuStrip.Opening += new System.ComponentModel.CancelEventHandler(this.instanceContextMenuStrip_Opening); // Hook up event
+            //
+            // setAliasToolStripMenuItem
+            //
+            this.setAliasToolStripMenuItem.Name = "setAliasToolStripMenuItem";
+            this.setAliasToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.setAliasToolStripMenuItem.Text = "Set Alias";
+            this.setAliasToolStripMenuItem.Click += new System.EventHandler(this.setAliasToolStripMenuItem_Click); // Hook up event
+            //
             // Form1
-            // 
+            //
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(245)))), ((int)(((byte)(245)))), ((int)(((byte)(245)))));
@@ -659,6 +708,7 @@ namespace WhatsAppLinkerApp
             this.instanceButtonsFlow.ResumeLayout(false);
             this.groupBoxLogs.ResumeLayout(false);
             this.groupBoxLogs.PerformLayout();
+            this.instanceContextMenuStrip.ResumeLayout(false); // Add this line
             this.ResumeLayout(false);
 
         }
@@ -670,7 +720,7 @@ namespace WhatsAppLinkerApp
         private System.Windows.Forms.Label titleLabel;
         private System.Windows.Forms.StatusStrip statusStrip;
         private System.Windows.Forms.ToolStripStatusLabel lblConnectionStatus;
-                private System.Windows.Forms.SplitContainer splitContainer;
+        private System.Windows.Forms.SplitContainer splitContainer;
         private System.Windows.Forms.Panel leftPanel;
         private System.Windows.Forms.GroupBox groupBoxCredentials;
         private System.Windows.Forms.TableLayoutPanel credentialsTableLayout;
@@ -693,8 +743,9 @@ namespace WhatsAppLinkerApp
         private System.Windows.Forms.ListView instanceListView;
         private System.Windows.Forms.ColumnHeader colClientId;
         private System.Windows.Forms.ColumnHeader colPhoneNumber;
-        private System.Windows.Forms.ColumnHeader colName;
+        private System.Windows.Forms.ColumnHeader colName; // Alias/Number
         private System.Windows.Forms.ColumnHeader colStatus;
+        private System.Windows.Forms.ColumnHeader colLastSeen; // ADDED: Last Seen column
         private System.Windows.Forms.FlowLayoutPanel instanceButtonsFlow;
         private System.Windows.Forms.Button btnRefreshInstances;
         private System.Windows.Forms.Button btnStartInstance;
@@ -703,6 +754,9 @@ namespace WhatsAppLinkerApp
         private System.Windows.Forms.Button btnStopAndDeleteInstance;
         private System.Windows.Forms.Button btnGetLogs;
         private System.Windows.Forms.GroupBox groupBoxLogs;
-        private System.Windows.Forms.TextBox logTextBox;
+        private System.Windows.Forms.RichTextBox logTextBox;
+        private System.Windows.Forms.ContextMenuStrip instanceContextMenuStrip; // ADDED: ContextMenu
+        private System.Windows.Forms.ToolStripMenuItem setAliasToolStripMenuItem; // ADDED: Set Alias item
+        private System.Windows.Forms.Label lblInstanceCount;
     }
 }

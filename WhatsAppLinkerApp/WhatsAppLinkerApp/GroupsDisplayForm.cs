@@ -1,4 +1,3 @@
-// GroupsDisplayForm.cs - Modified to work with ListView for participants
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -9,8 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json.Linq;
-using System.IO; // Used for export functionality
-using System.Security.Cryptography; // For DPAPI in Form1.cs (ensure it's in the project if needed)
+using System.IO;
+using WhatsAppLinkerApp.Database;
 
 namespace WhatsAppLinkerApp
 {
@@ -30,12 +29,8 @@ namespace WhatsAppLinkerApp
             PhoneNumber = string.Empty;
         }
 
-        // Keep ToString() for debugging or if ListBox is used elsewhere,
-        // but ListView items are populated via SubItems directly.
         public override string ToString()
         {
-            // This is primarily for debugging or if ListBox is ever re-introduced.
-            // ListView uses SubItems directly.
             var adminText = IsAdmin ? "Admin" : "Member";
             var whitelistText = IsWhitelisted ? "✓ Whitelisted" : "✗ Not Whitelisted";
             string nameToUse = DisplayName;
@@ -54,27 +49,186 @@ namespace WhatsAppLinkerApp
         private readonly ClientWebSocket _sharedWebSocketClient;
         private readonly CancellationTokenSource _sharedCancellationTokenSource;
         private readonly string _clientId;
-        private readonly string _clientPhoneNumber;
+        private readonly string _clientPhoneNumber; // The phone number of the bot instance
         private bool _isProcessingCommand = false;
 
         private List<JObject> _allFetchedGroups = new List<JObject>();
         private List<ParticipantInfo> _allParticipants = new List<ParticipantInfo>(); // Store all participants for filtering
-        // No longer need _filteredParticipants as a field, filter directly into ListView
 
+        // Add at the top of the class
+        // private readonly DatabaseConnection? _db;
+        private int? _cachedBotInstanceId = null;
+
+        // Update constructor
         public GroupsDisplayForm(ClientWebSocket sharedWsClient, CancellationTokenSource sharedCts, string clientId, string clientPhoneNumber)
         {
-            InitializeComponent(); // This MUST be the first call in the constructor.
+            InitializeComponent();
 
             _sharedWebSocketClient = sharedWsClient ?? throw new ArgumentNullException(nameof(sharedWsClient));
             _sharedCancellationTokenSource = sharedCts ?? throw new ArgumentNullException(nameof(sharedCts));
             _clientId = clientId;
             _clientPhoneNumber = clientPhoneNumber;
 
-            SetupFormInitialState(); // Rename from SetupForm for clarity
+            // Initialize database connection with error handling
+            try
+            {
+                _db = new DatabaseConnection();
+                Console.WriteLine("[GROUPS_FORM] Database connection initialized");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GROUPS_FORM_ERROR] Failed to initialize database: {ex.Message}");
+                _db = null;
+            }
+
+            SetupFormInitialState();
             ApplyGroupFormStyles();
             CheckWebSocketConnection();
         }
 
+        // Update GetBotInstanceId with better error handling
+        private async Task<int?> GetBotInstanceId()
+        {
+            Console.WriteLine($"[GROUPS_DB] GetBotInstanceId called for client: {_clientId}");
+
+            // Return cached value if available
+            if (_cachedBotInstanceId.HasValue)
+            {
+                Console.WriteLine($"[GROUPS_DB] Returning cached bot instance ID: {_cachedBotInstanceId}");
+                return _cachedBotInstanceId;
+            }
+
+            if (_db == null)
+            {
+                Console.WriteLine("[GROUPS_DB] Database connection is null");
+                return null;
+            }
+
+            try
+            {
+                Console.WriteLine($"[GROUPS_DB] Querying database for client_id: {_clientId}");
+
+                var query = "SELECT id FROM bot_instances WHERE client_id = @clientId LIMIT 1";
+                var result = await _db.QuerySingleAsync<int?>(query, new { clientId = _clientId });
+
+                if (result.HasValue)
+                {
+                    Console.WriteLine($"[GROUPS_DB] Found bot instance ID: {result}");
+                    _cachedBotInstanceId = result;
+                }
+                else
+                {
+                    Console.WriteLine($"[GROUPS_DB] No bot instance found for client_id: {_clientId}");
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GROUPS_DB_ERROR] Failed to get bot instance ID: {ex.Message}");
+                Console.WriteLine($"[GROUPS_DB_ERROR] Stack trace: {ex.StackTrace}");
+
+                // Don't throw, just return null
+                return null;
+            }
+        }
+
+        // Update ProcessParticipantsList to handle database errors gracefully
+        private async void ProcessParticipantsList(JObject message)
+        {
+            Console.WriteLine("[GROUPS] ProcessParticipantsList called");
+
+            participantsListView.Items.Clear();
+            _allParticipants.Clear();
+
+            JArray? participants = message["participants"] as JArray;
+            string? forGroupId = message["groupId"]?.ToString();
+
+            Console.WriteLine($"[GROUPS] Processing participants for group: {forGroupId}");
+            Console.WriteLine($"[GROUPS] Participant count: {participants?.Count ?? 0}");
+
+            string groupName = groupsListView.Items.Cast<ListViewItem>()
+                               .FirstOrDefault(it => it.Tag?.ToString() == forGroupId)?.SubItems[1].Text ?? forGroupId?.Split('@')[0] ?? "Group";
+
+            // Try to save to database but don't fail if it doesn't work
+            if (_db != null)
+            {
+                try
+                {
+                    var botInstanceId = await GetBotInstanceId();
+                    if (botInstanceId.HasValue && !string.IsNullOrEmpty(forGroupId))
+                    {
+                        Console.WriteLine($"[GROUPS_DB] Saving participants to database for bot instance: {botInstanceId}");
+
+                        // Clear existing participants for this group
+                        await _db.ExecuteAsync(
+                            "DELETE FROM group_participants WHERE bot_instance_id = @botId AND group_jid = @groupJid",
+                            new { botId = botInstanceId.Value, groupJid = forGroupId }
+                        );
+
+                        // Save new participants (but continue even if this fails)
+                        // ... database save code ...
+                    }
+                }
+                catch (Exception dbEx)
+                {
+                    Console.WriteLine($"[GROUPS_DB_ERROR] Failed to save participants to database: {dbEx.Message}");
+                    // Continue processing - database is optional
+                }
+            }
+
+            if (participants != null && participants.Count > 0)
+            {
+                foreach (JObject p in participants)
+                {
+                    try
+                    {
+                        string? jid = p["jid"]?.ToString();
+                        if (string.IsNullOrEmpty(jid)) continue;
+
+                        Console.WriteLine($"[GROUPS] Processing participant: {jid}");
+
+                        string? resolvedJidPayload = p["resolvedJid"]?.ToString();
+                        string phoneToUse = ExtractPhoneNumber(resolvedJidPayload ?? jid);
+
+                        ParticipantInfo newPInfo = new ParticipantInfo
+                        {
+                            Jid = jid,
+                            ResolvedPhoneJid = resolvedJidPayload,
+                            PhoneNumber = phoneToUse,
+                            DisplayName = p["displayName"]?.ToString() ?? phoneToUse,
+                            IsAdmin = p["isAdmin"]?.ToObject<bool>() ?? false,
+                            IsWhitelisted = p["isWhitelisted"]?.ToObject<bool>() ?? false
+                        };
+
+                        Console.WriteLine($"[GROUPS] Added participant: {newPInfo.DisplayName} ({newPInfo.PhoneNumber})");
+                        _allParticipants.Add(newPInfo);
+                    }
+                    catch (Exception pEx)
+                    {
+                        Console.WriteLine($"[GROUPS_ERROR] Failed to process participant: {pEx.Message}");
+                    }
+                }
+
+                _allParticipants = _allParticipants
+                    .OrderByDescending(p => p.IsAdmin)
+                    .ThenByDescending(p => p.IsWhitelisted)
+                    .ThenBy(p => p.DisplayName)
+                    .ToList();
+
+                UpdateStatus($"Loaded {_allParticipants.Count} participants for {groupName}.", SystemColors.ControlText);
+            }
+            else
+            {
+                UpdateStatus($"No participants found for {groupName}.", Color.Orange);
+                lblParticipantsTitle.Text = $"No participants for \"{groupName}\"";
+            }
+
+            lblParticipantsTitle.Text = $"Participants for \"{groupName}\"";
+            lblParticipantsCount.Text = $"Total: {_allParticipants.Count}";
+            txtSearchParticipant.Clear();
+            FilterParticipantsListView();
+        }
         private void SetupFormInitialState()
         {
             labelSelectedClient.Text = $"Groups for Client: {(_clientPhoneNumber.Length > 5 ? _clientPhoneNumber.Substring(0, 5) + "..." : _clientPhoneNumber)} ({_clientId})";
@@ -93,6 +247,10 @@ namespace WhatsAppLinkerApp
             participantsListView.Columns[1].Width = 130; // Phone
             participantsListView.Columns[2].Width = 80;  // Role
             participantsListView.Columns[3].Width = 80;  // Status
+
+            // Initial state for LID entry controls
+            txtManualLidPhoneNumber.Clear();
+            btnUpdateLidCache.Enabled = false;
         }
 
         private void CheckWebSocketConnection()
@@ -169,7 +327,7 @@ namespace WhatsAppLinkerApp
             }
         }
 
-        private async Task<bool> SendManagerCommand(string type, string? groupId = null, string? participantJid = null)
+        private async Task<bool> SendManagerCommand(string type, string? groupId = null, string? participantJid = null, JObject? additionalData = null)
         {
             if (_isProcessingCommand)
             {
@@ -185,12 +343,15 @@ namespace WhatsAppLinkerApp
             }
 
             SetButtonsProcessingState(true); // Disable buttons while sending
-            
+
             try
             {
-                var request = new JObject { ["type"] = type, ["clientId"] = _clientId };
+                var request = additionalData ?? new JObject();
+                request["type"] = type;
+                request["clientId"] = _clientId;
                 if (groupId != null) request["groupId"] = groupId;
                 if (participantJid != null) request["participantJid"] = participantJid;
+
                 var buffer = Encoding.UTF8.GetBytes(request.ToString());
                 if (_sharedCancellationTokenSource.IsCancellationRequested) return false;
                 await _sharedWebSocketClient.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, _sharedCancellationTokenSource.Token);
@@ -226,7 +387,9 @@ namespace WhatsAppLinkerApp
             btnFetchGroups.Enabled = canEnable;
             btnWhitelistGroup.Enabled = canEnable && groupsListView.SelectedItems.Count > 0;
             btnFetchParticipants.Enabled = canEnable && groupsListView.SelectedItems.Count > 0;
-            toolStripButtonWhitelist.Enabled = canEnable && participantsListView.SelectedItems.Count > 0; // Corrected
+            toolStripButtonWhitelist.Enabled = canEnable && participantsListView.SelectedItems.Count > 0;
+            btnUpdateLidCache.Enabled = canEnable && participantsListView.SelectedItems.Count > 0 &&
+                                       (participantsListView.SelectedItems[0].Tag is ParticipantInfo pInfo && pInfo.Jid.EndsWith("@lid"));
         }
 
         private async void btnFetchGroups_Click(object? sender, EventArgs? e)
@@ -280,7 +443,26 @@ namespace WhatsAppLinkerApp
                 };
                 item.SubItems.Add(group["subject"]?.ToString() ?? "Unnamed");
                 item.SubItems.Add(group["participantsCount"]?.ToString() ?? "0");
-                bool isWhitelisted = group["isWhitelisted"]?.ToObject<bool>() ?? false;
+
+                // Fix: Handle isWhitelisted as various types
+                bool isWhitelisted = false;
+                var whitelistedToken = group["isWhitelisted"];
+                if (whitelistedToken != null)
+                {
+                    if (whitelistedToken.Type == JTokenType.Boolean)
+                    {
+                        isWhitelisted = whitelistedToken.ToObject<bool>();
+                    }
+                    else if (whitelistedToken.Type == JTokenType.String)
+                    {
+                        isWhitelisted = whitelistedToken.ToString().ToLower() == "true";
+                    }
+                    else if (whitelistedToken.Type == JTokenType.Integer)
+                    {
+                        isWhitelisted = whitelistedToken.ToObject<int>() == 1;
+                    }
+                }
+
                 item.SubItems.Add(isWhitelisted ? "Yes" : "No");
                 if (isWhitelisted) item.BackColor = Color.LightGreen;
                 groupsListView.Items.Add(item);
@@ -289,7 +471,7 @@ namespace WhatsAppLinkerApp
 
             if (groupsListView.Items.Count > 0)
             {
-                groupsListView.Items[0].Selected = true; // Select the first item after filtering
+                groupsListView.Items[0].Selected = true;
                 groupsListView.Items[0].Focused = true;
             }
             else
@@ -300,10 +482,8 @@ namespace WhatsAppLinkerApp
                 btnWhitelistGroup.Enabled = false;
                 btnFetchParticipants.Enabled = false;
             }
-            // Manually trigger SelectedIndexChanged to update participant list if a group is selected
             groupsListView_SelectedIndexChanged(null, EventArgs.Empty);
         }
-
         private async void btnWhitelistGroup_Click(object? sender, EventArgs e)
         {
             if (groupsListView.SelectedItems.Count == 0)
@@ -353,6 +533,7 @@ namespace WhatsAppLinkerApp
             lblParticipantsTitle.Text = $"Fetching participants for \"{groupName}\"...";
             lblParticipantsCount.Text = "Total: 0";
             txtSearchParticipant.Clear(); // Clear participant search on new group selection
+            txtManualLidPhoneNumber.Clear(); // Clear manual LID entry on new group selection
 
             UpdateStatus($"Fetching participants for \"{groupName}\"...", SystemColors.ControlText);
             await SendManagerCommand("fetchParticipants", groupId);
@@ -369,7 +550,7 @@ namespace WhatsAppLinkerApp
         {
             string searchText = txtSearchParticipant?.Text.ToLowerInvariant().Trim() ?? "";
             participantsListView.BeginUpdate();
-            participantsListView.Items.Clear(); // This line was missing EndUpdate()
+            participantsListView.Items.Clear();
 
             if (_allParticipants == null || _allParticipants.Count == 0)
             {
@@ -378,8 +559,6 @@ namespace WhatsAppLinkerApp
                 return;
             }
 
-            // Filter participants based on search text
-            // _filteredParticipants is no longer a field, it's a local variable for filtering
             var currentFilteredList = string.IsNullOrWhiteSpace(searchText)
                 ? _allParticipants.ToList() // If search is empty, show all
                 : _allParticipants.Where(p =>
@@ -389,7 +568,6 @@ namespace WhatsAppLinkerApp
                     p.Jid.ToLowerInvariant().Contains(searchText) // Also search in original JID
                   ).ToList();
 
-            // Populate participantsListView from currentFilteredList
             foreach (ParticipantInfo pInfo in currentFilteredList)
             {
                 ListViewItem item = new ListViewItem(pInfo.DisplayName);
@@ -399,7 +577,7 @@ namespace WhatsAppLinkerApp
                 item.Tag = pInfo; // Store the ParticipantInfo object in Tag
                 participantsListView.Items.Add(item);
             }
-            participantsListView.EndUpdate(); // Corrected: Added this line
+            participantsListView.EndUpdate();
 
             lblParticipantsCount.Text = $"Total: {participantsListView.Items.Count}";
 
@@ -410,10 +588,9 @@ namespace WhatsAppLinkerApp
             }
             else
             {
-                // Disable participant-specific buttons if no participants are visible
                 toolStripButtonWhitelist.Enabled = false;
+                btnUpdateLidCache.Enabled = false; // Disable if no participants
             }
-            // Trigger SelectedIndexChanged to update toolStripButtonWhitelist text
             participantsListView_SelectedIndexChanged(null, EventArgs.Empty);
         }
 
@@ -443,10 +620,20 @@ namespace WhatsAppLinkerApp
             if (participantsListView.SelectedItems.Count > 0 && participantsListView.SelectedItems[0].Tag is ParticipantInfo pInfo)
             {
                 toolStripButtonWhitelist.Text = pInfo.IsWhitelisted ? "Remove Whitelist" : "Add Whitelist";
+                // Populate manual LID entry box if an LID is selected
+                if (pInfo.Jid.EndsWith("@lid"))
+                {
+                    txtManualLidPhoneNumber.Text = pInfo.PhoneNumber == "Unknown" ? "" : pInfo.PhoneNumber;
+                }
+                else
+                {
+                    txtManualLidPhoneNumber.Clear();
+                }
             }
             else
             {
                 toolStripButtonWhitelist.Text = "Add Whitelist"; // Default when no selection
+                txtManualLidPhoneNumber.Clear();
             }
         }
 
@@ -481,9 +668,6 @@ namespace WhatsAppLinkerApp
                             // Write CSV header
                             sw.WriteLine("DisplayName,PhoneNumber,IsAdmin,IsWhitelisted,Jid,ResolvedPhoneJid");
 
-                            // Use _allParticipants, then filter in memory for export or use current displayed list
-                            // Given the current implementation, _filteredParticipants is not a field.
-                            // So, we need to apply the filter logic again for export based on the current search text
                             string currentSearchText = txtSearchParticipant?.Text.ToLowerInvariant().Trim() ?? "";
                             var participantsToExport = string.IsNullOrWhiteSpace(currentSearchText)
                                 ? _allParticipants
@@ -522,7 +706,6 @@ namespace WhatsAppLinkerApp
 
         private void participantsListView_DoubleClick(object? sender, EventArgs e)
         {
-            // Optional: Double-click to toggle whitelist or copy info
             if (participantsListView.SelectedItems.Count > 0)
             {
                 toolStripButtonWhitelist_Click(sender, e); // Example: Toggle whitelist on double click
@@ -551,8 +734,10 @@ namespace WhatsAppLinkerApp
         {
             toolStripButtonWhitelist_Click(sender, e); // Re-use toolstrip button logic
         }
-
-        // Context menu opening event to enable/disable items based on selection
+        public bool IsForClient(string clientId)
+        {
+            return _clientId == clientId; // _clientId is a field in GroupsDisplayForm holding its associated client ID
+        }
         private void participantsContextMenu_Opening(object? sender, System.ComponentModel.CancelEventArgs e)
         {
             bool hasSelection = participantsListView.SelectedItems.Count > 0;
@@ -563,23 +748,80 @@ namespace WhatsAppLinkerApp
             if (hasSelection && participantsListView.SelectedItems[0].Tag is ParticipantInfo pInfo)
             {
                 whitelistToolStripMenuItem.Text = pInfo.IsWhitelisted ? "Remove Whitelist" : "Add Whitelist";
-            } else {
+            }
+            else
+            {
                 whitelistToolStripMenuItem.Text = "Toggle Whitelist"; // Default text
             }
         }
 
+        private async void btnUpdateLidCache_Click(object? sender, EventArgs e)
+        {
+            if (participantsListView.SelectedItems.Count == 0)
+            {
+                MessageBox.Show("Please select a participant (LID) from the list first.", "No Participant Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            if (!(participantsListView.SelectedItems[0].Tag is ParticipantInfo selectedParticipant)) return;
+
+            if (!selectedParticipant.Jid.EndsWith("@lid"))
+            {
+                MessageBox.Show("The selected participant does not appear to be an unresolved LID.", "Not a LID", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            string lidToUpdate = selectedParticipant.Jid;
+            string phoneNumber = txtManualLidPhoneNumber.Text.Trim();
+
+            if (string.IsNullOrWhiteSpace(phoneNumber))
+            {
+                MessageBox.Show("Please enter a phone number to associate with the LID.", "Phone Number Required", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtManualLidPhoneNumber.Focus();
+                return;
+            }
+
+            if (!phoneNumber.All(char.IsDigit) || phoneNumber.Length < 7) // Minimum reasonable phone length
+            {
+                MessageBox.Show("Please enter a valid phone number (digits only, minimum 7 digits).", "Invalid Phone Number", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtManualLidPhoneNumber.Focus();
+                return;
+            }
+
+            string phoneJid = phoneNumber.Contains("@") ? phoneNumber : $"{phoneNumber}@s.whatsapp.net";
+
+            UpdateStatus($"Requesting to set LID {lidToUpdate} to {phoneJid}...", SystemColors.ControlText);
+
+            var commandData = new JObject
+            {
+                ["type"] = "manualLidEntry",
+                ["lid"] = lidToUpdate,
+                ["phoneJid"] = phoneJid
+            };
+
+            // Use the SendManagerCommand, passing the additionalData parameter
+            bool sent = await SendManagerCommand("manualLidEntry", null, null, commandData);
+
+            if (sent)
+            {
+                txtManualLidPhoneNumber.Clear();
+                // Optionally re-fetch participant list or update UI to reflect potential change
+                // A participantDetailsUpdate message from Node.js would handle this if it sends one.
+                // For now, relying on Node.js to update the LID cache and then UI will refresh on next fetch.
+                UpdateStatus($"LID update request sent for {lidToUpdate}.", Color.Blue);
+            }
+            else
+            {
+                UpdateStatus($"Failed to send LID update request for {lidToUpdate}.", Color.Red);
+            }
+        }
 
         // Helper method to extract clean phone number from JID
         private string ExtractPhoneNumber(string? jid)
         {
             if (string.IsNullOrEmpty(jid)) return "Unknown";
-            // A JID can be '1234567890@s.whatsapp.net' or '12345@lid'
             var parts = jid.Split('@');
             string numberPart = parts.Length > 0 ? parts[0] : jid;
-            // Optionally, remove country code if it's the default one to make it cleaner for display
-            // For example, if DEFAULT_PHONE_COUNTRY_CODE is '967'
-            // if (numberPart.StartsWith("967") && numberPart.Length > 9) return numberPart.Substring(3);
-            return numberPart; // Return as is for now
+            return numberPart;
         }
 
         public void ProcessGroupsDisplayMessage(string messageJson)
@@ -617,9 +859,6 @@ namespace WhatsAppLinkerApp
                 string? originalLid = message["originalLid"]?.ToString();
                 string? resolvedPhoneJid = message["resolvedPhoneJid"]?.ToString();
                 string? displayName = message["displayName"]?.ToString();
-                // We're not directly receiving newWhitelistStatus from Node.js in this specific message type,
-                // but if the API sync happens, the next fetchParticipants would update it.
-                // For a more immediate update, the Node.js side would need to send isWhitelisted: bool in this message.
 
                 if (string.IsNullOrEmpty(originalLid) || string.IsNullOrEmpty(resolvedPhoneJid))
                 {
@@ -628,7 +867,6 @@ namespace WhatsAppLinkerApp
                 }
 
                 bool participantUpdated = false;
-                // Update _allParticipants list
                 foreach (var pInfo in _allParticipants)
                 {
                     if (pInfo.Jid == originalLid)
@@ -637,9 +875,6 @@ namespace WhatsAppLinkerApp
                         pInfo.ResolvedPhoneJid = resolvedPhoneJid;
                         pInfo.PhoneNumber = ExtractPhoneNumber(resolvedPhoneJid);
                         pInfo.DisplayName = displayName ?? pInfo.DisplayName;
-                        // To reflect whitelist status change from LID resolution, you'd need the node.js side to include it
-                        // or re-fetch participants list entirely after a short delay to allow API sync to complete on Node.js side.
-                        // For now, we only update display info.
                         participantUpdated = true;
                         break;
                     }
@@ -647,8 +882,7 @@ namespace WhatsAppLinkerApp
 
                 if (participantUpdated)
                 {
-                    // Re-apply the current search filter to update the ListView with new data
-                    FilterParticipantsListView();
+                    FilterParticipantsListView(); // Re-apply the current search filter to update the ListView with new data
                     UpdateStatus($"Participant {originalLid.Split('@')[0]} identified as {displayName ?? ExtractPhoneNumber(resolvedPhoneJid)} ({ExtractPhoneNumber(resolvedPhoneJid)}).", Color.Blue);
                 }
                 else
@@ -683,59 +917,139 @@ namespace WhatsAppLinkerApp
             FilterGroupsListView(); // Apply current filter
         }
 
-        private void ProcessParticipantsList(JObject message)
+
+        private readonly DatabaseConnection _db = new DatabaseConnection();
+
+        // private async Task<int?> GetBotInstanceId()
+        // {
+        //     var result = await _db.QuerySingleAsync<dynamic>(
+        //         "SELECT id FROM bot_instances WHERE client_id = @clientId",
+        //         new { clientId = _clientId }
+        //     );
+        //     return result?.id;
+        // }
+
+        // Update ProcessParticipantsList to check database for whitelist status
+        // private async void ProcessParticipantsList(JObject message)
+        // {
+        //     participantsListView.Items.Clear();
+        //     _allParticipants.Clear();
+
+        //     JArray? participants = message["participants"] as JArray;
+        //     string? forGroupId = message["groupId"]?.ToString();
+        //     string groupName = groupsListView.Items.Cast<ListViewItem>()
+        //                        .FirstOrDefault(it => it.Tag?.ToString() == forGroupId)?.SubItems[1].Text ?? forGroupId?.Split('@')[0] ?? "Group";
+
+        //     var botInstanceId = await GetBotInstanceId();
+        //     if (!botInstanceId.HasValue) return;
+
+        //     // Get all whitelisted users for this bot instance
+        //     var whitelistedUsers = await _db.QueryAsync<string>(
+        //         "SELECT user_jid FROM whitelisted_users WHERE bot_instance_id = @botId AND api_active = true",
+        //         new { botId = botInstanceId.Value }
+        //     );
+        //     var whitelistedSet = new HashSet<string>(whitelistedUsers);
+
+        //     if (participants != null && participants.Count > 0)
+        //     {
+        //         foreach (JObject p in participants)
+        //         {
+        //             string? jid = p["jid"]?.ToString();
+        //             if (string.IsNullOrEmpty(jid)) continue;
+
+        //             string? resolvedJidPayload = p["resolvedJid"]?.ToString();
+        //             string phoneToUse = ExtractPhoneNumber(resolvedJidPayload ?? jid);
+
+        //             // Check whitelist status from database
+        //             bool isWhitelisted = whitelistedSet.Contains(jid);
+
+        //             // If it's a LID and we have a resolved JID, check that too
+        //             if (!isWhitelisted && !string.IsNullOrEmpty(resolvedJidPayload))
+        //             {
+        //                 isWhitelisted = whitelistedSet.Contains(resolvedJidPayload);
+        //             }
+
+        //             ParticipantInfo newPInfo = new ParticipantInfo
+        //             {
+        //                 Jid = jid,
+        //                 ResolvedPhoneJid = resolvedJidPayload,
+        //                 PhoneNumber = phoneToUse,
+        //                 DisplayName = p["displayName"]?.ToString() ?? phoneToUse,
+        //                 IsAdmin = p["isAdmin"]?.ToObject<bool>() ?? false,
+        //                 IsWhitelisted = isWhitelisted
+        //             };
+        //             _allParticipants.Add(newPInfo);
+        //         }
+
+        //         _allParticipants = _allParticipants
+        //             .OrderByDescending(p => p.IsAdmin)
+        //             .ThenByDescending(p => p.IsWhitelisted)
+        //             .ThenBy(p => p.DisplayName)
+        //             .ToList();
+
+        //         UpdateStatus($"Loaded {_allParticipants.Count} participants for {groupName}.", SystemColors.ControlText);
+        //     }
+
+        //     else
+        //     {
+        //         UpdateStatus($"No participants found for {groupName}.", Color.Orange);
+        //         lblParticipantsTitle.Text = $"No participants for \"{groupName}\"";
+        //     }
+
+        //     lblParticipantsTitle.Text = $"Participants for \"{groupName}\""; // Update title with group name
+        //     lblParticipantsCount.Text = $"Total: {_allParticipants.Count}"; // Show total count
+        //     txtSearchParticipant.Clear(); // Clear search box after new data fetch to show all
+        //     FilterParticipantsListView(); // Populate ListView with filtered (or all) participants
+
+        // }
+
+        // Add method to update whitelist status in database
+        private async Task UpdateWhitelistInDatabase(string jid, bool isWhitelisted)
         {
-            participantsListView.Items.Clear(); // Clear current display
-            _allParticipants.Clear(); // Clear the full list
+            var botInstanceId = await GetBotInstanceId();
+            if (!botInstanceId.HasValue) return;
 
-            JArray? participants = message["participants"] as JArray;
-            string? forGroupId = message["groupId"]?.ToString();
-            string groupName = groupsListView.Items.Cast<ListViewItem>()
-                               .FirstOrDefault(it => it.Tag?.ToString() == forGroupId)?.SubItems[1].Text ?? forGroupId?.Split('@')[0] ?? "Group";
-
-            if (participants != null && participants.Count > 0)
+            if (jid.EndsWith("@g.us"))
             {
-                foreach (JObject p in participants)
+                if (isWhitelisted)
                 {
-                    string? jid = p["jid"]?.ToString();
-                    if (string.IsNullOrEmpty(jid)) continue;
-
-                    string? resolvedJidPayload = p["resolvedJid"]?.ToString();
-                    string phoneToUse = ExtractPhoneNumber(resolvedJidPayload ?? jid);
-
-                    ParticipantInfo newPInfo = new ParticipantInfo
-                    {
-                        Jid = jid,
-                        ResolvedPhoneJid = resolvedJidPayload,
-                        PhoneNumber = phoneToUse,
-                        DisplayName = p["displayName"]?.ToString() ?? phoneToUse,
-                        IsAdmin = p["isAdmin"]?.ToObject<bool>() ?? false,
-                        IsWhitelisted = p["isWhitelisted"]?.ToObject<bool>() ?? false
-                    };
-                    _allParticipants.Add(newPInfo);
+                    await _db.ExecuteAsync(@"
+                INSERT INTO whitelisted_groups (bot_instance_id, group_jid)
+                VALUES (@botId, @jid)
+                ON CONFLICT (bot_instance_id, group_jid) 
+                DO UPDATE SET is_active = true, updated_at = CURRENT_TIMESTAMP",
+                        new { botId = botInstanceId.Value, jid });
                 }
-
-                // Sort all participants before filtering
-                _allParticipants = _allParticipants
-                    .OrderByDescending(p => p.IsAdmin)
-                    .ThenByDescending(p => p.IsWhitelisted)
-                    .ThenBy(p => p.DisplayName)
-                    .ToList();
-
-                UpdateStatus($"Loaded {_allParticipants.Count} participants for {groupName}.", SystemColors.ControlText);
+                else
+                {
+                    await _db.ExecuteAsync(@"
+                UPDATE whitelisted_groups 
+                SET is_active = false, updated_at = CURRENT_TIMESTAMP
+                WHERE bot_instance_id = @botId AND group_jid = @jid",
+                        new { botId = botInstanceId.Value, jid });
+                }
             }
             else
             {
-                UpdateStatus($"No participants found for {groupName}.", Color.Orange);
-                lblParticipantsTitle.Text = $"No participants for \"{groupName}\"";
+                if (isWhitelisted)
+                {
+                    await _db.ExecuteAsync(@"
+                INSERT INTO whitelisted_users (bot_instance_id, user_jid, phone_number)
+                VALUES (@botId, @jid, @phone)
+                ON CONFLICT (bot_instance_id, user_jid) 
+                DO UPDATE SET api_active = true, updated_at = CURRENT_TIMESTAMP",
+                        new { botId = botInstanceId.Value, jid, phone = jid.Split('@')[0] });
+                }
+                else
+                {
+                    await _db.ExecuteAsync(@"
+                UPDATE whitelisted_users 
+                SET api_active = false, updated_at = CURRENT_TIMESTAMP
+                WHERE bot_instance_id = @botId AND user_jid = @jid",
+                        new { botId = botInstanceId.Value, jid });
+                }
             }
-
-            lblParticipantsTitle.Text = $"Participants for \"{groupName}\""; // Update title with group name
-            lblParticipantsCount.Text = $"Total: {_allParticipants.Count}"; // Show total count
-            txtSearchParticipant.Clear(); // Clear search box after new data fetch to show all
-            FilterParticipantsListView(); // Populate ListView with filtered (or all) participants
         }
-
         private void ProcessWhitelistResponse(JObject message, string responseType)
         {
             bool success = message["success"]?.ToObject<bool>() ?? false;
@@ -749,12 +1063,10 @@ namespace WhatsAppLinkerApp
                 UpdateStatus($"Successfully {action} {itemType} '{jid?.Split('@')[0]}'.", Color.DarkGreen);
                 if (itemType == "group")
                 {
-                    // Refresh groups list
-                    btnFetchGroups_Click(null, null);
+                    btnFetchGroups_Click(null, null); // Refresh groups list
                 }
                 else if (itemType == "user")
                 {
-                    // Update the whitelist status in _allParticipants and then re-filter
                     var updatedParticipant = _allParticipants.FirstOrDefault(p => p.Jid == jid || p.ResolvedPhoneJid == jid);
                     if (updatedParticipant != null)
                     {
@@ -764,8 +1076,6 @@ namespace WhatsAppLinkerApp
                     }
                     else
                     {
-                        // If participant not found in current list, maybe re-fetch or just update status label
-                        // For robustness, re-fetching participants for the current group
                         if (groupsListView.SelectedItems.Count > 0 && groupsListView.SelectedItems[0].Tag?.ToString() != null)
                         {
                             string currentGroupId = groupsListView.SelectedItems[0].Tag.ToString()!;

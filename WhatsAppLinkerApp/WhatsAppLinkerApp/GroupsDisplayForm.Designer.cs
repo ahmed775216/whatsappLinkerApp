@@ -1,4 +1,3 @@
-// GroupsDisplayForm.Designer.cs
 namespace WhatsAppLinkerApp
 {
     partial class GroupsDisplayForm
@@ -30,10 +29,10 @@ namespace WhatsAppLinkerApp
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            // System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(GroupsDisplayForm)); // ADDED for toolstrip images
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(GroupsDisplayForm));
             this.labelSelectedClient = new System.Windows.Forms.Label();
             this.groupBoxGroups = new System.Windows.Forms.GroupBox();
-            this.txtSearchGroup = new System.Windows.Forms.TextBox(); // ADDED here
+            this.txtSearchGroup = new System.Windows.Forms.TextBox();
             this.groupsListView = new System.Windows.Forms.ListView();
             this.columnHeaderGroupId = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderGroupName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -42,14 +41,15 @@ namespace WhatsAppLinkerApp
             this.btnFetchGroups = new System.Windows.Forms.Button();
             this.btnWhitelistGroup = new System.Windows.Forms.Button();
             this.btnFetchParticipants = new System.Windows.Forms.Button();
-            
-            // Enhanced Participants Area
             this.panelParticipants = new System.Windows.Forms.Panel();
             this.participantsHeaderPanel = new System.Windows.Forms.Panel();
             this.lblParticipantsTitle = new System.Windows.Forms.Label();
             this.lblParticipantsCount = new System.Windows.Forms.Label();
             this.txtSearchParticipant = new System.Windows.Forms.TextBox();
-            this.participantsListView = new System.Windows.Forms.ListView(); // Changed to ListView
+            this.lblManualLidPhone = new System.Windows.Forms.Label(); // NEW
+            this.txtManualLidPhoneNumber = new System.Windows.Forms.TextBox(); // NEW
+            this.btnUpdateLidCache = new System.Windows.Forms.Button(); // NEW
+            this.participantsListView = new System.Windows.Forms.ListView();
             this.colParticipantName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colParticipantPhone = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colParticipantRole = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -64,14 +64,12 @@ namespace WhatsAppLinkerApp
             this.copyNameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.whitelistToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            
             this.groupBoxGroups.SuspendLayout();
             this.panelParticipants.SuspendLayout();
             this.participantsHeaderPanel.SuspendLayout();
             this.participantsToolStrip.SuspendLayout();
             this.participantsContextMenu.SuspendLayout();
             this.SuspendLayout();
-            
             // 
             // labelSelectedClient
             // 
@@ -83,13 +81,12 @@ namespace WhatsAppLinkerApp
             this.labelSelectedClient.Size = new System.Drawing.Size(130, 19);
             this.labelSelectedClient.TabIndex = 0;
             this.labelSelectedClient.Text = "Groups for Client:";
-            
             // 
             // groupBoxGroups
             // 
             this.groupBoxGroups.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
-            this.groupBoxGroups.Controls.Add(this.txtSearchGroup); // ADDED control
+            this.groupBoxGroups.Controls.Add(this.txtSearchGroup);
             this.groupBoxGroups.Controls.Add(this.groupsListView);
             this.groupBoxGroups.Controls.Add(this.btnFetchGroups);
             this.groupBoxGroups.Controls.Add(this.btnWhitelistGroup);
@@ -101,20 +98,19 @@ namespace WhatsAppLinkerApp
             this.groupBoxGroups.TabIndex = 1;
             this.groupBoxGroups.TabStop = false;
             this.groupBoxGroups.Text = "Groups";
-            
+            // 
             // txtSearchGroup
-            //
-            this.txtSearchGroup.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            // 
+            this.txtSearchGroup.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtSearchGroup.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtSearchGroup.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.txtSearchGroup.Location = new System.Drawing.Point(15, 25); // Position relative to GroupBox
+            this.txtSearchGroup.Location = new System.Drawing.Point(15, 25);
             this.txtSearchGroup.Name = "txtSearchGroup";
-            this.txtSearchGroup.Size = new System.Drawing.Size(420, 23); // Adjust size as per GroupBox width
-            this.txtSearchGroup.TabIndex = 4; // Or appropriate index
-            this.txtSearchGroup.PlaceholderText = "Search by group name..."; // Placeholder
-            this.txtSearchGroup.TextChanged += new System.EventHandler(this.txtSearchGroup_TextChanged); // Event hook
-            
+            this.txtSearchGroup.PlaceholderText = "Search by group name...";
+            this.txtSearchGroup.Size = new System.Drawing.Size(420, 23);
+            this.txtSearchGroup.TabIndex = 4;
+            this.txtSearchGroup.TextChanged += new System.EventHandler(this.txtSearchGroup_TextChanged);
             // 
             // groupsListView
             // 
@@ -129,39 +125,34 @@ namespace WhatsAppLinkerApp
             this.groupsListView.FullRowSelect = true;
             this.groupsListView.GridLines = true;
             this.groupsListView.HideSelection = false;
-            this.groupsListView.Location = new System.Drawing.Point(15, 55); // Adjusted location to be below search box
+            this.groupsListView.Location = new System.Drawing.Point(15, 55);
             this.groupsListView.MultiSelect = false;
             this.groupsListView.Name = "groupsListView";
-            this.groupsListView.Size = new System.Drawing.Size(420, 390); // Adjusted height
+            this.groupsListView.Size = new System.Drawing.Size(420, 390);
             this.groupsListView.TabIndex = 0;
             this.groupsListView.UseCompatibleStateImageBehavior = false;
             this.groupsListView.View = System.Windows.Forms.View.Details;
             this.groupsListView.SelectedIndexChanged += new System.EventHandler(this.groupsListView_SelectedIndexChanged);
-            
             // 
             // columnHeaderGroupId
             // 
             this.columnHeaderGroupId.Text = "Group ID";
             this.columnHeaderGroupId.Width = 120;
-            
             // 
             // columnHeaderGroupName
             // 
             this.columnHeaderGroupName.Text = "Group Name";
             this.columnHeaderGroupName.Width = 150;
-            
             // 
             // columnHeaderParticipants
             // 
             this.columnHeaderParticipants.Text = "Members";
             this.columnHeaderParticipants.Width = 60;
-            
             // 
             // columnHeaderWhitelisted
             // 
             this.columnHeaderWhitelisted.Text = "Whitelisted";
             this.columnHeaderWhitelisted.Width = 70;
-            
             // 
             // btnFetchGroups
             // 
@@ -178,7 +169,6 @@ namespace WhatsAppLinkerApp
             this.btnFetchGroups.Text = "Fetch Groups";
             this.btnFetchGroups.UseVisualStyleBackColor = false;
             this.btnFetchGroups.Click += new System.EventHandler(this.btnFetchGroups_Click);
-            
             // 
             // btnWhitelistGroup
             // 
@@ -196,7 +186,6 @@ namespace WhatsAppLinkerApp
             this.btnWhitelistGroup.Text = "Add Whitelist";
             this.btnWhitelistGroup.UseVisualStyleBackColor = false;
             this.btnWhitelistGroup.Click += new System.EventHandler(this.btnWhitelistGroup_Click);
-            
             // 
             // btnFetchParticipants
             // 
@@ -214,7 +203,6 @@ namespace WhatsAppLinkerApp
             this.btnFetchParticipants.Text = "Fetch Participants";
             this.btnFetchParticipants.UseVisualStyleBackColor = false;
             this.btnFetchParticipants.Click += new System.EventHandler(this.btnFetchParticipants_Click);
-            
             // 
             // panelParticipants
             // 
@@ -225,13 +213,15 @@ namespace WhatsAppLinkerApp
             this.panelParticipants.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panelParticipants.Controls.Add(this.participantsHeaderPanel);
             this.panelParticipants.Controls.Add(this.txtSearchParticipant);
+            this.panelParticipants.Controls.Add(this.lblManualLidPhone); // NEW
+            this.panelParticipants.Controls.Add(this.txtManualLidPhoneNumber); // NEW
+            this.panelParticipants.Controls.Add(this.btnUpdateLidCache); // NEW
             this.panelParticipants.Controls.Add(this.participantsListView);
             this.panelParticipants.Controls.Add(this.participantsToolStrip);
             this.panelParticipants.Location = new System.Drawing.Point(468, 40);
             this.panelParticipants.Name = "panelParticipants";
             this.panelParticipants.Size = new System.Drawing.Size(500, 500);
             this.panelParticipants.TabIndex = 2;
-            
             // 
             // participantsHeaderPanel
             // 
@@ -243,7 +233,6 @@ namespace WhatsAppLinkerApp
             this.participantsHeaderPanel.Name = "participantsHeaderPanel";
             this.participantsHeaderPanel.Size = new System.Drawing.Size(498, 40);
             this.participantsHeaderPanel.TabIndex = 0;
-            
             // 
             // lblParticipantsTitle
             // 
@@ -251,12 +240,10 @@ namespace WhatsAppLinkerApp
             this.lblParticipantsTitle.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold);
             this.lblParticipantsTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
             this.lblParticipantsTitle.Location = new System.Drawing.Point(10, 10);
-            
             this.lblParticipantsTitle.Name = "lblParticipantsTitle";
             this.lblParticipantsTitle.Size = new System.Drawing.Size(89, 20);
             this.lblParticipantsTitle.TabIndex = 0;
             this.lblParticipantsTitle.Text = "Participants";
-            
             // 
             // lblParticipantsCount
             // 
@@ -269,7 +256,6 @@ namespace WhatsAppLinkerApp
             this.lblParticipantsCount.TabIndex = 1;
             this.lblParticipantsCount.Text = "Total: 0";
             this.lblParticipantsCount.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            
             // 
             // txtSearchParticipant
             // 
@@ -281,8 +267,43 @@ namespace WhatsAppLinkerApp
             this.txtSearchParticipant.Name = "txtSearchParticipant";
             this.txtSearchParticipant.Size = new System.Drawing.Size(478, 23);
             this.txtSearchParticipant.TabIndex = 1;
-            this.txtSearchParticipant.TextChanged += new System.EventHandler(this.txtSearchParticipant_TextChanged); // Event hook
-            
+            this.txtSearchParticipant.TextChanged += new System.EventHandler(this.txtSearchParticipant_TextChanged);
+            // 
+            // lblManualLidPhone
+            // 
+            this.lblManualLidPhone.AutoSize = true;
+            this.lblManualLidPhone.Location = new System.Drawing.Point(10, 75); // Adjusted Y
+            this.lblManualLidPhone.Name = "lblManualLidPhone";
+            this.lblManualLidPhone.Size = new System.Drawing.Size(92, 15);
+            this.lblManualLidPhone.TabIndex = 3; // Adjusted TabIndex
+            this.lblManualLidPhone.Text = "Phone for LID:";
+            // 
+            // txtManualLidPhoneNumber
+            // 
+            this.txtManualLidPhoneNumber.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtManualLidPhoneNumber.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtManualLidPhoneNumber.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.txtManualLidPhoneNumber.Location = new System.Drawing.Point(110, 72); // Adjusted Y
+            this.txtManualLidPhoneNumber.Name = "txtManualLidPhoneNumber";
+            this.txtManualLidPhoneNumber.Size = new System.Drawing.Size(280, 23); // Adjusted size
+            this.txtManualLidPhoneNumber.TabIndex = 4; // Adjusted TabIndex
+            // 
+            // btnUpdateLidCache
+            // 
+            this.btnUpdateLidCache.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnUpdateLidCache.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(149)))), ((int)(((byte)(237)))));
+            this.btnUpdateLidCache.FlatAppearance.BorderSize = 0;
+            this.btnUpdateLidCache.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnUpdateLidCache.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.btnUpdateLidCache.ForeColor = System.Drawing.Color.White;
+            this.btnUpdateLidCache.Location = new System.Drawing.Point(400, 72); // Adjusted Y
+            this.btnUpdateLidCache.Name = "btnUpdateLidCache";
+            this.btnUpdateLidCache.Size = new System.Drawing.Size(90, 23);
+            this.btnUpdateLidCache.TabIndex = 5; // Adjusted TabIndex
+            this.btnUpdateLidCache.Text = "Set LID";
+            this.btnUpdateLidCache.UseVisualStyleBackColor = false;
+            this.btnUpdateLidCache.Click += new System.EventHandler(this.btnUpdateLidCache_Click); // Event hook
             // 
             // participantsListView
             // 
@@ -300,39 +321,34 @@ namespace WhatsAppLinkerApp
             this.participantsListView.FullRowSelect = true;
             this.participantsListView.GridLines = true;
             this.participantsListView.HideSelection = false;
-            this.participantsListView.Location = new System.Drawing.Point(10, 75);
+            this.participantsListView.Location = new System.Drawing.Point(10, 105); // Adjusted Y to be below new controls
             this.participantsListView.Name = "participantsListView";
-            this.participantsListView.Size = new System.Drawing.Size(478, 387);
-            this.participantsListView.TabIndex = 2;
+            this.participantsListView.Size = new System.Drawing.Size(478, 360); // Adjusted Height
+            this.participantsListView.TabIndex = 2; // Adjusted TabIndex
             this.participantsListView.UseCompatibleStateImageBehavior = false;
             this.participantsListView.View = System.Windows.Forms.View.Details;
             this.participantsListView.SelectedIndexChanged += new System.EventHandler(this.participantsListView_SelectedIndexChanged);
             this.participantsListView.DoubleClick += new System.EventHandler(this.participantsListView_DoubleClick);
-            
             // 
             // colParticipantName
             // 
             this.colParticipantName.Text = "Name";
             this.colParticipantName.Width = 180;
-            
             // 
             // colParticipantPhone
             // 
             this.colParticipantPhone.Text = "Phone Number";
             this.colParticipantPhone.Width = 130;
-            
             // 
             // colParticipantRole
             // 
             this.colParticipantRole.Text = "Role";
             this.colParticipantRole.Width = 80;
-            
             // 
             // colParticipantStatus
             // 
             this.colParticipantStatus.Text = "Status";
             this.colParticipantStatus.Width = 80;
-            
             // 
             // participantsToolStrip
             // 
@@ -349,7 +365,6 @@ namespace WhatsAppLinkerApp
             this.participantsToolStrip.Size = new System.Drawing.Size(498, 30);
             this.participantsToolStrip.TabIndex = 3;
             this.participantsToolStrip.Text = "toolStrip1";
-            
             // 
             // toolStripButtonWhitelist
             // 
@@ -358,47 +373,43 @@ namespace WhatsAppLinkerApp
             this.toolStripButtonWhitelist.Enabled = false;
             this.toolStripButtonWhitelist.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.toolStripButtonWhitelist.ForeColor = System.Drawing.Color.White;
-            // this.toolStripButtonWhitelist.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonWhitelist.Image"))); // ADDED
-            this.toolStripButtonWhitelist.ImageTransparentColor = System.Drawing.Color.Magenta; // ADDED
+            // this.toolStripButtonWhitelist.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonWhitelist.Image")));
+            this.toolStripButtonWhitelist.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonWhitelist.Margin = new System.Windows.Forms.Padding(0, 2, 2, 2);
             this.toolStripButtonWhitelist.Name = "toolStripButtonWhitelist";
             this.toolStripButtonWhitelist.Padding = new System.Windows.Forms.Padding(10, 2, 10, 2);
             this.toolStripButtonWhitelist.Size = new System.Drawing.Size(104, 26);
             this.toolStripButtonWhitelist.Text = "Add Whitelist";
             this.toolStripButtonWhitelist.Click += new System.EventHandler(this.toolStripButtonWhitelist_Click);
-            
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(6, 30);
-            
             // 
             // toolStripButtonExport
             // 
             this.toolStripButtonExport.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.toolStripButtonExport.Font = new System.Drawing.Font("Segoe UI", 9F);
-            // this.toolStripButtonExport.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonExport.Image"))); // ADDED
-            this.toolStripButtonExport.ImageTransparentColor = System.Drawing.Color.Magenta; // ADDED
+            // this.toolStripButtonExport.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonExport.Image")));
+            this.toolStripButtonExport.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonExport.Name = "toolStripButtonExport";
             this.toolStripButtonExport.Size = new System.Drawing.Size(45, 27);
             this.toolStripButtonExport.Text = "Export";
             this.toolStripButtonExport.ToolTipText = "Export participants list";
             this.toolStripButtonExport.Click += new System.EventHandler(this.toolStripButtonExport_Click);
-            
             // 
             // toolStripButtonRefresh
             // 
             this.toolStripButtonRefresh.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
             this.toolStripButtonRefresh.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.toolStripButtonRefresh.Font = new System.Drawing.Font("Segoe UI", 9F);
-            // this.toolStripButtonRefresh.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonRefresh.Image"))); // ADDED
-            this.toolStripButtonRefresh.ImageTransparentColor = System.Drawing.Color.Magenta; // ADDED
+            // this.toolStripButtonRefresh.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonRefresh.Image")));
+            this.toolStripButtonRefresh.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonRefresh.Name = "toolStripButtonRefresh";
             this.toolStripButtonRefresh.Size = new System.Drawing.Size(50, 27);
             this.toolStripButtonRefresh.Text = "Refresh";
             this.toolStripButtonRefresh.Click += new System.EventHandler(this.toolStripButtonRefresh_Click);
-            
             // 
             // participantsContextMenu
             // 
@@ -409,8 +420,7 @@ namespace WhatsAppLinkerApp
             this.whitelistToolStripMenuItem});
             this.participantsContextMenu.Name = "participantsContextMenu";
             this.participantsContextMenu.Size = new System.Drawing.Size(185, 76);
-            this.participantsContextMenu.Opening += new System.ComponentModel.CancelEventHandler(this.participantsContextMenu_Opening); // ADDED
-            
+            this.participantsContextMenu.Opening += new System.ComponentModel.CancelEventHandler(this.participantsContextMenu_Opening);
             // 
             // copyPhoneNumberToolStripMenuItem
             // 
@@ -418,7 +428,6 @@ namespace WhatsAppLinkerApp
             this.copyPhoneNumberToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
             this.copyPhoneNumberToolStripMenuItem.Text = "Copy Phone Number";
             this.copyPhoneNumberToolStripMenuItem.Click += new System.EventHandler(this.copyPhoneNumberToolStripMenuItem_Click);
-            
             // 
             // copyNameToolStripMenuItem
             // 
@@ -426,13 +435,11 @@ namespace WhatsAppLinkerApp
             this.copyNameToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
             this.copyNameToolStripMenuItem.Text = "Copy Name";
             this.copyNameToolStripMenuItem.Click += new System.EventHandler(this.copyNameToolStripMenuItem_Click);
-            
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
             this.toolStripSeparator2.Size = new System.Drawing.Size(181, 6);
-            
             // 
             // whitelistToolStripMenuItem
             // 
@@ -440,7 +447,6 @@ namespace WhatsAppLinkerApp
             this.whitelistToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
             this.whitelistToolStripMenuItem.Text = "Toggle Whitelist";
             this.whitelistToolStripMenuItem.Click += new System.EventHandler(this.whitelistToolStripMenuItem_Click);
-            
             // 
             // GroupsDisplayForm
             // 
@@ -458,7 +464,7 @@ namespace WhatsAppLinkerApp
             this.Text = "WhatsApp Groups Manager";
             this.Load += new System.EventHandler(this.GroupsDisplayForm_Load);
             this.groupBoxGroups.ResumeLayout(false);
-            this.groupBoxGroups.PerformLayout(); // ADDED here for txtSearchGroup
+            this.groupBoxGroups.PerformLayout();
             this.panelParticipants.ResumeLayout(false);
             this.panelParticipants.PerformLayout();
             this.participantsHeaderPanel.ResumeLayout(false);
@@ -475,7 +481,7 @@ namespace WhatsAppLinkerApp
 
         private System.Windows.Forms.Label labelSelectedClient;
         private System.Windows.Forms.GroupBox groupBoxGroups;
-        private System.Windows.Forms.TextBox txtSearchGroup; // DECLARE HERE
+        private System.Windows.Forms.TextBox txtSearchGroup;
         private System.Windows.Forms.ListView groupsListView;
         private System.Windows.Forms.ColumnHeader columnHeaderGroupId;
         private System.Windows.Forms.ColumnHeader columnHeaderGroupName;
@@ -484,13 +490,14 @@ namespace WhatsAppLinkerApp
         private System.Windows.Forms.Button btnFetchGroups;
         private System.Windows.Forms.Button btnWhitelistGroup;
         private System.Windows.Forms.Button btnFetchParticipants;
-        
-        // Enhanced Participants Area
         private System.Windows.Forms.Panel panelParticipants;
         private System.Windows.Forms.Panel participantsHeaderPanel;
         private System.Windows.Forms.Label lblParticipantsTitle;
         private System.Windows.Forms.Label lblParticipantsCount;
         private System.Windows.Forms.TextBox txtSearchParticipant;
+        private System.Windows.Forms.Label lblManualLidPhone; // NEW
+        private System.Windows.Forms.TextBox txtManualLidPhoneNumber; // NEW
+        private System.Windows.Forms.Button btnUpdateLidCache; // NEW
         private System.Windows.Forms.ListView participantsListView;
         private System.Windows.Forms.ColumnHeader colParticipantName;
         private System.Windows.Forms.ColumnHeader colParticipantPhone;
