@@ -168,6 +168,8 @@ namespace WhatsAppLinkerApp
 
                         // Save new participants (but continue even if this fails)
                         // ... database save code ...
+
+
                     }
                 }
                 catch (Exception dbEx)
@@ -179,6 +181,8 @@ namespace WhatsAppLinkerApp
 
             if (participants != null && participants.Count > 0)
             {
+                // In GroupsDisplayForm.cs, inside ProcessParticipantsList method
+
                 foreach (JObject p in participants)
                 {
                     try
@@ -186,22 +190,39 @@ namespace WhatsAppLinkerApp
                         string? jid = p["jid"]?.ToString();
                         if (string.IsNullOrEmpty(jid)) continue;
 
-                        Console.WriteLine($"[GROUPS] Processing participant: {jid}");
-
                         string? resolvedJidPayload = p["resolvedJid"]?.ToString();
-                        string phoneToUse = ExtractPhoneNumber(resolvedJidPayload ?? jid);
+                        string? namePayload = p["displayName"]?.ToString();
+
+                        // *** NEW UI LOGIC START ***
+                        string nameToDisplay;
+                        string phoneToDisplay;
+
+                        if (!string.IsNullOrEmpty(resolvedJidPayload))
+                        {
+                            // ---- AFTER RESOLUTION ----
+                            phoneToDisplay = ExtractPhoneNumber(resolvedJidPayload);
+                            // Use the name from the payload. If it's empty or just a number, use the phone number as the name.
+                            nameToDisplay = (!string.IsNullOrEmpty(namePayload) && !namePayload.Contains("@")) ? namePayload : phoneToDisplay;
+                        }
+                        else
+                        {
+                            // ---- BEFORE RESOLUTION (could be LID or regular number) ----
+                            phoneToDisplay = ExtractPhoneNumber(jid); // This will be "Unknown (LID)" for LIDs.
+                                                                      // The name is the best name we have (likely the pushName).
+                            nameToDisplay = namePayload ?? phoneToDisplay;
+                        }
+                        // *** NEW UI LOGIC END ***
 
                         ParticipantInfo newPInfo = new ParticipantInfo
                         {
                             Jid = jid,
                             ResolvedPhoneJid = resolvedJidPayload,
-                            PhoneNumber = phoneToUse,
-                            DisplayName = p["displayName"]?.ToString() ?? phoneToUse,
+                            PhoneNumber = phoneToDisplay, // The clean phone number or "Unknown (LID)"
+                            DisplayName = nameToDisplay,  // The best available name
                             IsAdmin = p["isAdmin"]?.ToObject<bool>() ?? false,
                             IsWhitelisted = p["isWhitelisted"]?.ToObject<bool>() ?? false
                         };
 
-                        Console.WriteLine($"[GROUPS] Added participant: {newPInfo.DisplayName} ({newPInfo.PhoneNumber})");
                         _allParticipants.Add(newPInfo);
                     }
                     catch (Exception pEx)
@@ -209,7 +230,6 @@ namespace WhatsAppLinkerApp
                         Console.WriteLine($"[GROUPS_ERROR] Failed to process participant: {pEx.Message}");
                     }
                 }
-
                 _allParticipants = _allParticipants
                     .OrderByDescending(p => p.IsAdmin)
                     .ThenByDescending(p => p.IsWhitelisted)
@@ -568,13 +588,45 @@ namespace WhatsAppLinkerApp
                     p.Jid.ToLowerInvariant().Contains(searchText) // Also search in original JID
                   ).ToList();
 
+            // In GroupsDisplayForm.cs, inside FilterParticipantsListView()
+
             foreach (ParticipantInfo pInfo in currentFilteredList)
             {
-                ListViewItem item = new ListViewItem(pInfo.DisplayName);
-                item.SubItems.Add(pInfo.PhoneNumber);
+                // --- Determine what to display in each column ---
+
+                // NAME column logic:
+                string nameForDisplay = pInfo.DisplayName;
+                if (string.IsNullOrWhiteSpace(nameForDisplay) || nameForDisplay == pInfo.Jid.Split('@')[0])
+                {
+                    // If name is missing or is just the JID number, use our user-friendly fallback.
+                    nameForDisplay = $"User ({pInfo.Jid.Split('@')[0]})";
+                }
+
+                // PHONE column logic:
+                string phoneForDisplay;
+                if (!string.IsNullOrEmpty(pInfo.ResolvedPhoneJid))
+                {
+                    // If resolved, always show the phone number.
+                    phoneForDisplay = pInfo.PhoneNumber;
+                }
+                else if (pInfo.Jid.EndsWith("@lid"))
+                {
+                    // If it's an unresolved LID, show the LID.
+                    phoneForDisplay = pInfo.Jid;
+                }
+                else
+                {
+                    // Otherwise, show the phone number from the JID.
+                    phoneForDisplay = pInfo.PhoneNumber;
+                }
+
+                // Create the ListViewItem
+                ListViewItem item = new ListViewItem(nameForDisplay); // Column 1: Name
+                item.SubItems.Add(phoneForDisplay);                  // Column 2: Phone/LID
                 item.SubItems.Add(pInfo.IsAdmin ? "Admin" : "Member");
                 item.SubItems.Add(pInfo.IsWhitelisted ? "Yes" : "No");
-                item.Tag = pInfo; // Store the ParticipantInfo object in Tag
+                item.Tag = pInfo; // Store the full ParticipantInfo object in Tag
+
                 participantsListView.Items.Add(item);
             }
             participantsListView.EndUpdate();
