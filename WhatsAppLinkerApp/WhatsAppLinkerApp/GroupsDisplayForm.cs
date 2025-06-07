@@ -1050,47 +1050,76 @@ namespace WhatsAppLinkerApp
                 }
             }
         }
+        // In GroupsDisplayForm.cs
+
         private void ProcessWhitelistResponse(JObject message, string responseType)
         {
             bool success = message["success"]?.ToObject<bool>() ?? false;
-            string reason = message["reason"]?.ToString() ?? "Error";
             string? jid = message["jid"]?.ToString();
-            string itemType = message["typeOfItem"]?.ToString() ?? "item";
-            string action = responseType.Contains("add") ? "whitelisted" : "removed from whitelist";
+            string? itemType = message["typeOfItem"]?.ToString();
+
+            if (string.IsNullOrEmpty(jid)) return; // Can't do anything without the JID
 
             if (success)
             {
-                UpdateStatus($"Successfully {action} {itemType} '{jid?.Split('@')[0]}'.", Color.DarkGreen);
+                bool isAdding = responseType.Contains("add");
+                string actionText = isAdding ? "whitelisted" : "removed from whitelist";
+
                 if (itemType == "group")
                 {
-                    btnFetchGroups_Click(null, null); // Refresh groups list
-                }
-                else if (itemType == "user")
-                {
-                    var updatedParticipant = _allParticipants.FirstOrDefault(p => p.Jid == jid || p.ResolvedPhoneJid == jid);
-                    if (updatedParticipant != null)
+                    // Find the group in the ListView
+                    ListViewItem? groupItem = groupsListView.Items.Cast<ListViewItem>()
+                                               .FirstOrDefault(it => it.Tag?.ToString() == jid);
+
+                    if (groupItem != null)
                     {
-                        updatedParticipant.IsWhitelisted = responseType.Contains("add");
-                        FilterParticipantsListView(); // Re-filter to show updated status
-                        UpdateStatus($"Participant {updatedParticipant.DisplayName} whitelist status updated.", Color.Blue);
+                        // **Directly update the UI without a full refresh**
+                        groupItem.SubItems[3].Text = isAdding ? "Yes" : "No";
+                        groupItem.BackColor = isAdding ? Color.LightGreen : Color.White;
+
+                        // Update the button text if this group is still selected
+                        if (groupItem.Selected)
+                        {
+                            btnWhitelistGroup.Text = isAdding ? "Remove Whitelist" : "Add Whitelist";
+                        }
                     }
                     else
                     {
-                        if (groupsListView.SelectedItems.Count > 0 && groupsListView.SelectedItems[0].Tag?.ToString() != null)
+                        // If not found (e.g., due to filtering), we can still trigger a less disruptive fetch
+                        btnFetchGroups_Click(null, null);
+                    }
+
+                    UpdateStatus($"Successfully {actionText} group '{groupItem?.SubItems[1].Text ?? jid.Split('@')[0]}'.", Color.DarkGreen);
+                }
+                else if (itemType == "user")
+                {
+                    // Find the participant in the main data list (_allParticipants)
+                    var participant = _allParticipants.FirstOrDefault(p => p.Jid == jid);
+                    if (participant != null)
+                    {
+                        // Update the data source
+                        participant.IsWhitelisted = isAdding;
+
+                        // Find the participant in the visible ListView
+                        ListViewItem? participantItem = participantsListView.Items.Cast<ListViewItem>()
+                                                        .FirstOrDefault(it => (it.Tag as ParticipantInfo)?.Jid == jid);
+                        if (participantItem != null)
                         {
-                            string currentGroupId = groupsListView.SelectedItems[0].Tag.ToString()!;
-                            Task.Run(async () =>
-                            {
-                                await Task.Delay(100); // Small delay to allow manager to process
-                                await SendManagerCommand("fetchParticipants", currentGroupId);
-                            });
+                            // Update the visible item directly
+                            participantItem.SubItems[3].Text = isAdding ? "Yes" : "No";
+
+                            // Force a redraw to apply the new color defined in DrawSubItem
+                            participantsListView.Invalidate(participantItem.Bounds);
                         }
+                        UpdateStatus($"Successfully {actionText} participant '{participant.DisplayName}'.", Color.DarkGreen);
                     }
                 }
             }
-            else
+            else // Handle failure
             {
-                MessageBox.Show($"Failed to {action} {itemType} '{jid?.Split('@')[0]}': {reason}", "Operation Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                string reason = message["reason"]?.ToString() ?? "Unknown error";
+                string actionFailed = responseType.Contains("add") ? "whitelist" : "remove from whitelist";
+                MessageBox.Show($"Failed to {actionFailed} {itemType} '{jid.Split('@')[0]}': {reason}", "Operation Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 UpdateStatus($"Failed: {reason}", Color.Red);
             }
         }
