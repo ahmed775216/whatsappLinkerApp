@@ -393,7 +393,23 @@ namespace WhatsAppLinkerApp
                 SetButtonsProcessingState(false); // Re-enable buttons after send attempt
             }
         }
+// Add this method anywhere inside the GroupsDisplayForm class
 
+            public void TriggerParticipantsRefresh()
+            {
+                if (this.InvokeRequired)
+                {
+                    this.Invoke((MethodInvoker)delegate { TriggerParticipantsRefresh(); });
+                    return;
+                }
+
+                // Check if a group is actually selected before trying to refresh
+                if (groupsListView.SelectedItems.Count > 0)
+                {
+                    Console.WriteLine("[GROUPS_FORM] Participant refresh triggered externally (e.g., after LID update).");
+                    btnFetchParticipants_Click(null, EventArgs.Empty);
+                }
+            }
         private void SetButtonsProcessingState(bool processing, bool forceDisable = false)
         {
             if (this.InvokeRequired)

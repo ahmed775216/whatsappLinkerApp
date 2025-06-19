@@ -7,7 +7,9 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-
+<ItemGroup>
+  <EmbeddedResource Include="appSettings.json" />
+</ItemGroup>
   <ItemGroup>
     <Compile Update="Form1.cs">
       <SubType>Form</SubType>

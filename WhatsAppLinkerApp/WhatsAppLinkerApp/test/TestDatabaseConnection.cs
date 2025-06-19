@@ -10,7 +10,7 @@ class TestDatabaseConnection
         
         try
         {
-            var connString = "Host=localhost;Port=15432;Database=whatsapp_bot_system;Username=postgres;Password=postgres_admin_password;";
+            var connString = "Host=134.119.194.180;Port=5432;Database=whatsapp_bot_system;Username=postgres;Password=Ahmed@2025;";
             using var conn = new NpgsqlConnection(connString);
             conn.Open();
             

@@ -782,11 +782,25 @@ namespace WhatsAppLinkerApp
                         AppendLogMessage($"Manager ACK for '{message["originalType"] ?? ""}': {message["message"]}", (message["success"]?.ToObject<bool>() ?? false) ? "info" : "warn");
                         break;
 
-                    case "manualLidEntryResponse":
-                        string clientId = message["ClientId"]?.ToString() ?? "Unknown";
-                        AppendLogMessage($"Received manualLidEntryResponse for ClientId: {clientId}", "info");
-                        // You might want to add more specific handling here based on the response content
-                        break;
+                    // Form1.cs -> ProcessManagerControlMessage
+
+                        case "manualLidEntryResponse":
+                            {
+                                string? clientId = message["clientId"]?.ToString() ?? "Unknown"; // Corrected case
+                                bool success = message["success"]?.ToObject<bool>() ?? false;
+                                string? lid = message["lid"]?.ToString();
+                                
+                                AppendLogMessage($"Received manualLidEntryResponse for ClientId: {clientId}, Success: {success}", "info");
+
+                                // If the update was successful and the groups form is open, trigger a refresh
+                                if (success && _activeGroupsForm != null && !_activeGroupsForm.IsDisposed && _activeGroupsForm.IsForClient(clientId))
+                                {
+                                    // This is a bit of a workaround. Ideally, the UI would update just the one line.
+                                    // For now, telling it to re-fetch the participants is a reliable way to show the new data.
+                                    _activeGroupsForm.TriggerParticipantsRefresh(); // We'll add this helper method.
+                                }
+                                break;
+                            }
 
                     default:
                         Console.WriteLine($"[UI] Unhandled message type from manager: {type}");

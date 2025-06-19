@@ -255,7 +255,7 @@
             this.textBoxApiUsername.Name = "textBoxApiUsername";
             this.textBoxApiUsername.Size = new System.Drawing.Size(154, 23);
             this.textBoxApiUsername.TabIndex = 1;
-            this.textBoxApiUsername.Text = "781028068";
+            this.textBoxApiUsername.Text = "";
             //
             // labelApiPassword
             //
@@ -276,7 +276,7 @@
             this.textBoxApiPassword.Name = "textBoxApiPassword";
             this.textBoxApiPassword.Size = new System.Drawing.Size(154, 23);
             this.textBoxApiPassword.TabIndex = 3;
-            this.textBoxApiPassword.Text = "781028068";
+            this.textBoxApiPassword.Text = "";
             this.textBoxApiPassword.UseSystemPasswordChar = true;
             //
             // labelOwnerNumber
@@ -319,7 +319,7 @@
             this.textBoxPhoneNumber.Name = "textBoxPhoneNumber";
             this.textBoxPhoneNumber.Size = new System.Drawing.Size(88, 23);
             this.textBoxPhoneNumber.TabIndex = 1;
-            this.textBoxPhoneNumber.Text = "733300785";
+            this.textBoxPhoneNumber.Text = "";
             //
             // buttonsFlowLayout
             //
